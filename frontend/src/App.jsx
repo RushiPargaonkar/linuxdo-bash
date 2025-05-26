@@ -3,14 +3,14 @@ import { io } from 'socket.io-client';
 import LoginForm from './components/LoginForm';
 import Terminal from './components/Terminal';
 import Chat from './components/Chat';
-import UserList from './components/UserList';
+
 import ProgressModal from './components/ProgressModal';
 import Header from './components/Header';
 import TestTerminal from './components/TestTerminal';
 import OtherUsersTerminals from './components/OtherUsersTerminals';
 import ThemeToggle from './components/ThemeToggle';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { Terminal as TerminalIcon, MessageCircle, Users } from 'lucide-react';
+import { Terminal as TerminalIcon, MessageCircle } from 'lucide-react';
 
 function App() {
   // 临时测试模式 - 设置为true来测试xterm
@@ -375,7 +375,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header username={username} onLogout={handleLogout} />
+      <Header username={username} onLogout={handleLogout} onlineCount={activeUsers.length} />
 
       {/* 移动端标签切换 */}
       <div className="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -402,17 +402,7 @@ function App() {
             <MessageCircle size={18} className="mr-2" />
             聊天
           </button>
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`flex-1 flex items-center justify-center py-3 px-4 text-sm font-medium ${
-              activeTab === 'users'
-                ? 'text-linuxdo-600 border-b-2 border-linuxdo-600'
-                : 'text-gray-500 dark:text-gray-400'
-            }`}
-          >
-            <Users size={18} className="mr-2" />
-            用户
-          </button>
+
         </div>
       </div>
 
@@ -435,11 +425,6 @@ function App() {
               currentUsername={username}
               onSendMessage={handleSendMessage}
             />
-          </div>
-
-          {/* 用户列表 */}
-          <div className={`${activeTab !== 'users' ? 'hidden lg:block' : ''}`}>
-            <UserList users={activeUsers} currentUsername={username} socket={socket} />
           </div>
         </div>
       </div>

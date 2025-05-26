@@ -2,7 +2,7 @@ import React from 'react';
 import { Terminal, LogOut, Github, Heart } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
-const Header = ({ username, onLogout }) => {
+const Header = ({ username, onLogout, onlineCount = 0 }) => {
   return (
     <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
       <div className="container mx-auto px-4">
@@ -26,11 +26,19 @@ const Header = ({ username, onLogout }) => {
           <div className="flex items-center space-x-4">
             {username && (
               <>
-                <div className="hidden sm:flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {username}
-                  </span>
+                <div className="hidden sm:flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {username}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                    <span>在线:</span>
+                    <span className="font-medium text-linuxdo-600 dark:text-linuxdo-400">
+                      {onlineCount}
+                    </span>
+                  </div>
                 </div>
                 <button
                   onClick={onLogout}
