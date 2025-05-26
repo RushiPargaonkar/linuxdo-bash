@@ -56,7 +56,7 @@
   }
 
   .chat-messages {
-    @apply h-96 overflow-y-auto p-4 space-y-2 bg-white dark:bg-gray-800;
+    @apply h-80 lg:h-[420px] overflow-y-auto p-4 space-y-2 bg-white dark:bg-gray-800;
   }
 
   .chat-message {
@@ -210,7 +210,7 @@
   }
 
   .chat-messages {
-    @apply h-48;
+    @apply h-64;
   }
 }
 
