@@ -378,30 +378,30 @@ function App() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
-        {/* 上半部分：终端和侧边栏 */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-          {/* 终端区域 */}
-          <div className={`lg:col-span-3 ${activeTab !== 'terminal' ? 'hidden lg:block' : ''}`}>
+      <div className="container mx-auto px-4 py-6 relative">
+        {/* 上半部分：终端区域 - 现在占满整个宽度 */}
+        <div className="mb-8">
+          {/* 终端区域 - 占据3/4宽度 */}
+          <div className={`lg:w-3/4 ${activeTab !== 'terminal' ? 'hidden lg:block' : ''}`}>
             <Terminal socket={socket} username={username} />
           </div>
+        </div>
 
-          {/* 侧边栏 - 移除高度限制和滚动条，提升z-index */}
-          <div className="lg:col-span-1 space-y-6 relative z-50">
-            {/* 聊天室 */}
-            <div className={`${activeTab !== 'chat' ? 'hidden lg:block' : ''}`}>
-              <Chat
-                socket={socket}
-                messages={chatMessages}
-                currentUsername={username}
-                onSendMessage={handleSendMessage}
-              />
-            </div>
+        {/* 侧边栏 - 绝对定位，脱离文档流，调整为更窄的宽度 */}
+        <div className="lg:absolute lg:top-6 lg:right-4 lg:w-80 space-y-6 z-50">
+          {/* 聊天室 */}
+          <div className={`${activeTab !== 'chat' ? 'hidden lg:block' : ''}`}>
+            <Chat
+              socket={socket}
+              messages={chatMessages}
+              currentUsername={username}
+              onSendMessage={handleSendMessage}
+            />
+          </div>
 
-            {/* 用户列表 */}
-            <div className={`${activeTab !== 'users' ? 'hidden lg:block' : ''}`}>
-              <UserList users={activeUsers} currentUsername={username} socket={socket} />
-            </div>
+          {/* 用户列表 */}
+          <div className={`${activeTab !== 'users' ? 'hidden lg:block' : ''}`}>
+            <UserList users={activeUsers} currentUsername={username} socket={socket} />
           </div>
         </div>
       </div>
