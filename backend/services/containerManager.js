@@ -343,6 +343,62 @@ CMD ["/bin/bash"]
   }
 
   /**
+   * 重置用户容器
+   */
+  async resetContainer(username) {
+    try {
+      console.log(`重置容器: ${username}`);
+
+      // 1. 删除现有容器
+      await this.removeContainer(username);
+
+      // 2. 创建新容器
+      const containerId = await this.createContainer(username);
+
+      // 3. 更新容器记录
+      this.containers.set(username, {
+        containerId,
+        createdAt: Date.now()
+      });
+
+      console.log(`容器重置完成: ${username} -> ${containerId}`);
+      return {
+        containerId,
+        message: '容器已重置，所有数据已清空'
+      };
+    } catch (error) {
+      console.error('重置容器失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 延长容器时间
+   */
+  async extendContainer(username) {
+    try {
+      console.log(`延长容器时间: ${username}`);
+
+      const containerInfo = this.containers.get(username);
+      if (!containerInfo) {
+        throw new Error('容器不存在');
+      }
+
+      // 延长2小时（重置创建时间）
+      containerInfo.createdAt = Date.now();
+
+      console.log(`容器时间已延长: ${username}`);
+      return {
+        message: '容器时间已延长2小时',
+        newExpireTime: Date.now() + this.CONTAINER_LIFETIME
+      };
+    } catch (error) {
+      console.error('延长容器时间失败:', error);
+      throw error;
+    }
+  }
+
+  /**
    * 清理过期容器
    */
   async cleanupExpiredContainers() {

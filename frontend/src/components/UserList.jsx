@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Clock, Container, Eye } from 'lucide-react';
+import { Users, Clock, Container, Eye, RotateCcw, Plus } from 'lucide-react';
 
-const UserList = ({ users, currentUsername }) => {
+const UserList = ({ users, currentUsername, socket }) => {
   const [userTerminalOutputs, setUserTerminalOutputs] = useState({});
+  const [isResetting, setIsResetting] = useState(false);
+  const [isExtending, setIsExtending] = useState(false);
 
   const formatUptime = (uptime) => {
     const minutes = Math.floor(uptime / (1000 * 60));
@@ -31,6 +33,36 @@ const UserList = ({ users, currentUsername }) => {
       return `${hours}h ${minutes % 60}m 后过期`;
     } else {
       return `${minutes}m 后过期`;
+    }
+  };
+
+  // 重置容器
+  const handleResetContainer = async () => {
+    if (!socket || isResetting) return;
+
+    if (confirm('确定要重置容器吗？这将删除容器内的所有数据并重新创建。')) {
+      setIsResetting(true);
+      try {
+        socket.emit('reset-container', { username: currentUsername });
+      } catch (error) {
+        console.error('重置容器失败:', error);
+      } finally {
+        setTimeout(() => setIsResetting(false), 3000);
+      }
+    }
+  };
+
+  // 延长容器时间
+  const handleExtendContainer = async () => {
+    if (!socket || isExtending) return;
+
+    setIsExtending(true);
+    try {
+      socket.emit('extend-container', { username: currentUsername });
+    } catch (error) {
+      console.error('延长容器时间失败:', error);
+    } finally {
+      setTimeout(() => setIsExtending(false), 2000);
     }
   };
 
@@ -113,14 +145,35 @@ const UserList = ({ users, currentUsername }) => {
                     </div>
                   </div>
 
-                  {/* 状态指示器 */}
+                  {/* 状态指示器和操作按钮 */}
                   <div className="flex flex-col items-end space-y-2">
                     <div className="flex items-center space-x-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-xs text-green-600">在线</span>
+                      <span className="text-xs text-green-600">运行中</span>
                     </div>
 
-                    {!isCurrentUser && (
+                    {isCurrentUser ? (
+                      /* 当前用户的操作按钮 */
+                      <div className="flex flex-col space-y-1">
+                        <button
+                          onClick={handleResetContainer}
+                          disabled={isResetting}
+                          className="flex items-center space-x-1 text-xs text-red-600 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <RotateCcw size={12} className={isResetting ? 'animate-spin' : ''} />
+                          <span>{isResetting ? '重置中...' : '重置容器'}</span>
+                        </button>
+
+                        <button
+                          onClick={handleExtendContainer}
+                          disabled={isExtending}
+                          className="flex items-center space-x-1 text-xs text-blue-600 hover:text-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <Plus size={12} />
+                          <span>{isExtending ? '延长中...' : '延长时间'}</span>
+                        </button>
+                      </div>
+                    ) : (
                       <button className="flex items-center space-x-1 text-xs text-gray-500 hover:text-gray-700 transition-colors">
                         <Eye size={12} />
                         <span>观看</span>

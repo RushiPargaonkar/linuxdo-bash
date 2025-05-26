@@ -162,6 +162,20 @@ function App() {
       setActiveUsers(prev => prev.filter(u => u !== data.username));
     });
 
+    socketInstance.on('container-reset', (data) => {
+      // 容器重置成功，显示消息
+      setProgress({
+        progress: 100,
+        message: data.message
+      });
+      // 可以在这里添加更多重置后的处理逻辑
+    });
+
+    socketInstance.on('container-extended', (data) => {
+      // 容器时间延长成功，显示消息
+      alert(data.message);
+    });
+
     socketInstance.on('error', (data) => {
       setError(data.message);
       setIsCreatingContainer(false);
@@ -310,7 +324,7 @@ function App() {
 
             {/* 用户列表 */}
             <div className={`${activeTab !== 'users' ? 'hidden lg:block' : ''}`}>
-              <UserList users={activeUsers} currentUsername={username} />
+              <UserList users={activeUsers} currentUsername={username} socket={socket} />
             </div>
           </div>
         </div>

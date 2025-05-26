@@ -215,6 +215,91 @@ io.on('connection', (socket) => {
     }
   });
 
+  // 重置容器
+  socket.on('reset-container', async (data) => {
+    try {
+      const { username } = data;
+
+      if (username !== socket.username) {
+        socket.emit('error', { message: '只能重置自己的容器' });
+        return;
+      }
+
+      // 关闭当前终端
+      if (socket.terminalId) {
+        terminalService.closeTerminal(socket.terminalId);
+        socket.terminalId = null;
+      }
+
+      // 重置容器
+      const result = await containerManager.resetContainer(username);
+
+      // 创建新的终端会话
+      const terminal = await terminalService.createTerminal(username, result.containerId);
+      socket.terminalId = terminal.pid;
+      socket.containerId = result.containerId;
+
+      // 绑定新终端事件
+      terminal.onData((data) => {
+        try {
+          socket.emit('terminal-output', data);
+          socket.broadcast.emit('user-terminal-output', {
+            username,
+            data
+          });
+        } catch (error) {
+          console.error('发送终端输出失败:', error);
+        }
+      });
+
+      terminal.onExit(() => {
+        try {
+          socket.emit('terminal-exit');
+        } catch (error) {
+          console.error('发送终端退出事件失败:', error);
+        }
+      });
+
+      socket.emit('container-reset', {
+        containerId: result.containerId,
+        message: result.message
+      });
+
+      // 通知其他用户
+      socket.broadcast.emit('user-container-reset', { username });
+
+    } catch (error) {
+      console.error('重置容器失败:', error);
+      socket.emit('error', { message: '重置容器失败: ' + error.message });
+    }
+  });
+
+  // 延长容器时间
+  socket.on('extend-container', async (data) => {
+    try {
+      const { username } = data;
+
+      if (username !== socket.username) {
+        socket.emit('error', { message: '只能延长自己的容器时间' });
+        return;
+      }
+
+      const result = await containerManager.extendContainer(username);
+
+      socket.emit('container-extended', {
+        message: result.message,
+        newExpireTime: result.newExpireTime
+      });
+
+      // 通知其他用户
+      socket.broadcast.emit('user-container-extended', { username });
+
+    } catch (error) {
+      console.error('延长容器时间失败:', error);
+      socket.emit('error', { message: '延长容器时间失败: ' + error.message });
+    }
+  });
+
   // 断开连接
   socket.on('disconnect', () => {
     console.log('用户断开连接:', socket.id);
