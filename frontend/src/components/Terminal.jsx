@@ -239,35 +239,66 @@ const Terminal = ({ socket, username }) => {
           </span>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={handleCopy}
-            className="p-1 text-gray-400 hover:text-white transition-colors"
-            title="复制选中文本 (Ctrl+C)"
-          >
-            <Copy size={16} />
-          </button>
-          <button
-            onClick={handlePaste}
-            className="p-1 text-gray-400 hover:text-white transition-colors"
-            title="粘贴 (Ctrl+V)"
-          >
-            <Clipboard size={16} />
-          </button>
-          <button
-            onClick={handleClear}
-            className="p-1 text-gray-400 hover:text-white transition-colors"
-            title="清屏"
-          >
-            <RotateCcw size={16} />
-          </button>
-          <button
-            onClick={handleFullscreen}
-            className="p-1 text-gray-400 hover:text-white transition-colors"
-            title={isFullscreen ? "退出全屏" : "全屏"}
-          >
-            {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-          </button>
+        <div className="flex items-center space-x-4">
+          {/* 复制粘贴提示 */}
+          <div className="hidden lg:flex items-center space-x-3 text-xs text-gray-400">
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={handleCopy}
+                className="p-1 text-gray-400 hover:text-white transition-colors"
+                title="复制选中文本"
+              >
+                <Copy size={14} />
+              </button>
+              <span>Ctrl+Shift+C</span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={handlePaste}
+                className="p-1 text-gray-400 hover:text-white transition-colors"
+                title="粘贴"
+              >
+                <Clipboard size={14} />
+              </button>
+              <span>Ctrl+Shift+V</span>
+            </div>
+          </div>
+
+          {/* 移动端只显示图标 */}
+          <div className="lg:hidden flex items-center space-x-2">
+            <button
+              onClick={handleCopy}
+              className="p-1 text-gray-400 hover:text-white transition-colors"
+              title="复制选中文本 (Ctrl+Shift+C)"
+            >
+              <Copy size={16} />
+            </button>
+            <button
+              onClick={handlePaste}
+              className="p-1 text-gray-400 hover:text-white transition-colors"
+              title="粘贴 (Ctrl+Shift+V)"
+            >
+              <Clipboard size={16} />
+            </button>
+          </div>
+
+          {/* 其他按钮 */}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handleClear}
+              className="p-1 text-gray-400 hover:text-white transition-colors"
+              title="清屏"
+            >
+              <RotateCcw size={16} />
+            </button>
+            <button
+              onClick={handleFullscreen}
+              className="p-1 text-gray-400 hover:text-white transition-colors"
+              title={isFullscreen ? "退出全屏" : "全屏"}
+            >
+              {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            </button>
+          </div>
         </div>
       </div>
 
