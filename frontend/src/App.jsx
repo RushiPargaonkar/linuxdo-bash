@@ -386,8 +386,8 @@ function App() {
             <Terminal socket={socket} username={username} />
           </div>
 
-          {/* 侧边栏 - 固定高度，避免影响下面的布局 */}
-          <div className="lg:col-span-1 space-y-6 lg:h-[600px] lg:overflow-y-auto">
+          {/* 侧边栏 - 移除高度限制和滚动条，提升z-index */}
+          <div className="lg:col-span-1 space-y-6 relative z-50">
             {/* 聊天室 */}
             <div className={`${activeTab !== 'chat' ? 'hidden lg:block' : ''}`}>
               <Chat
