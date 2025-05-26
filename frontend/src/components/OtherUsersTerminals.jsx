@@ -1,17 +1,46 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Heart, User, Monitor, Eye } from 'lucide-react';
 import { getUserAvatarColor, getUserInitial, getUserAvatar } from '../utils/avatarColors';
+import { Terminal } from '@xterm/xterm';
+import '@xterm/xterm/css/xterm.css';
 
 const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
   const [userLikes, setUserLikes] = useState({});
   const [terminalOutputs, setTerminalOutputs] = useState({});
   const [userAvatars, setUserAvatars] = useState({});
   const terminalRefs = useRef({});
+  const xtermInstances = useRef({});
 
   // 过滤掉当前用户，只显示其他用户
   const otherUsers = activeUsers.filter(user => user !== currentUsername);
 
+  // 初始化xterm终端实例
+  const initializeTerminal = useCallback((username, element) => {
+    if (!element || xtermInstances.current[username]) return;
 
+    const terminal = new Terminal({
+      rows: 20,
+      cols: 80,
+      theme: {
+        background: '#000000',
+        foreground: '#ffffff',
+        cursor: '#ffffff',
+        selection: '#ffffff40'
+      },
+      fontSize: 12,
+      fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+      cursorBlink: false,
+      disableStdin: true // 只读模式
+    });
+
+    terminal.open(element);
+    xtermInstances.current[username] = terminal;
+
+    // 如果已有输出，写入终端
+    if (terminalOutputs[username]) {
+      terminal.write(terminalOutputs[username]);
+    }
+  }, [terminalOutputs]);
 
   // 自动滚动到底部
   const scrollToBottom = useCallback((username) => {
@@ -66,7 +95,12 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
           ...prev,
           [username]: (prev[username] || '') + output
         }));
-        // 滚动由useEffect处理，避免重复滚动
+
+        // 如果xterm实例存在，直接写入新数据
+        const terminal = xtermInstances.current[username];
+        if (terminal) {
+          terminal.write(output);
+        }
       }
     });
 
@@ -99,40 +133,25 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
     };
   }, [socket, currentUsername]);
 
+  // 清理xterm实例
+  useEffect(() => {
+    return () => {
+      Object.values(xtermInstances.current).forEach(terminal => {
+        if (terminal) {
+          terminal.dispose();
+        }
+      });
+      xtermInstances.current = {};
+    };
+  }, []);
+
   const handleLikeUser = (username) => {
     if (socket) {
       socket.emit('like-user', { targetUsername: username });
     }
   };
 
-  const formatTerminalOutput = (output) => {
-    if (!output) return '';
 
-    // 清理终端控制序列，但保留更多有用信息
-    let cleaned = output
-      // 移除ANSI转义序列
-      .replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '')
-      // 移除终端控制序列
-      .replace(/\[\?[0-9]+[hl]/g, '')
-      // 移除窗口标题设置
-      .replace(/\x1b\]0;[^\x07]*\x07/g, '')
-      // 简化长提示符，但保留路径信息
-      .replace(/root@[a-f0-9]{12,}:([^\$#]*[\$#])/g, 'root@container:$1')
-      // 移除连续的空行，但保留单个空行
-      .replace(/\n\s*\n\s*\n/g, '\n\n')
-      .trim();
-
-    // 显示更多行，让用户能看到完整的命令历史
-    const lines = cleaned.split('\n');
-
-    // 如果内容太多，显示最后30行，确保能看到足够的上下文
-    if (lines.length > 30) {
-      const lastLines = lines.slice(-30);
-      return '...\n' + lastLines.join('\n');
-    }
-
-    return cleaned;
-  };
 
   if (otherUsers.length === 0) {
     return (
@@ -194,16 +213,19 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
 
               {/* 终端内容 */}
               <div
-                ref={(el) => terminalRefs.current[username] = el}
-                className="bg-black text-green-400 p-3 h-64 overflow-y-auto terminal-scrollbar"
+                ref={(el) => {
+                  terminalRefs.current[username] = el;
+                  if (el) {
+                    initializeTerminal(username, el);
+                  }
+                }}
+                className="bg-black h-64"
               >
-                <div className="font-mono text-xs whitespace-pre-wrap">
-                  {formatTerminalOutput(terminalOutputs[username]) || (
-                    <div className="text-gray-500 italic">
-                      等待用户操作...
-                    </div>
-                  )}
-                </div>
+                {!terminalOutputs[username] && (
+                  <div className="flex items-center justify-center h-full text-gray-500 italic text-sm">
+                    等待用户操作...
+                  </div>
+                )}
               </div>
 
               {/* 底部状态 */}
