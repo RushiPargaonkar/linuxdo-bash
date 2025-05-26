@@ -8,6 +8,8 @@ import ProgressModal from './components/ProgressModal';
 import Header from './components/Header';
 import TestTerminal from './components/TestTerminal';
 import OtherUsersTerminals from './components/OtherUsersTerminals';
+import ThemeToggle from './components/ThemeToggle';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { Terminal as TerminalIcon, MessageCircle, Users } from 'lucide-react';
 
 function App() {
@@ -291,7 +293,7 @@ function App() {
 
   if (!isConnected && !isCreatingContainer) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-linuxdo-50 to-linuxdo-100">
+      <div className="min-h-screen bg-gradient-to-br from-linuxdo-50 to-linuxdo-100 dark:from-gray-900 dark:to-gray-800">
         <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-md mx-auto">
@@ -299,17 +301,17 @@ function App() {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-linuxdo-500 text-white rounded-full mb-4">
                 <TerminalIcon size={32} />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 欢迎来到LinuxDo自习室
               </h2>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-300">
                 输入用户名获得你的专属Linux容器
               </p>
             </div>
 
             <LoginForm onLogin={handleLogin} error={error} />
 
-            <div className="mt-8 text-center text-sm text-gray-500">
+            <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
               <p>🐳 每个用户独立容器</p>
               <p>🛡️ 完全安全隔离</p>
               <p>⏰ 2小时自动清理</p>
@@ -322,7 +324,7 @@ function App() {
 
   if (isCreatingContainer) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-linuxdo-50 to-linuxdo-100">
+      <div className="min-h-screen bg-gradient-to-br from-linuxdo-50 to-linuxdo-100 dark:from-gray-900 dark:to-gray-800">
         <Header />
         <ProgressModal
           progress={progress.progress}
@@ -334,18 +336,18 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header username={username} onLogout={handleLogout} />
 
       {/* 移动端标签切换 */}
-      <div className="lg:hidden bg-white border-b">
+      <div className="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="flex">
           <button
             onClick={() => setActiveTab('terminal')}
             className={`flex-1 flex items-center justify-center py-3 px-4 text-sm font-medium ${
               activeTab === 'terminal'
                 ? 'text-linuxdo-600 border-b-2 border-linuxdo-600'
-                : 'text-gray-500'
+                : 'text-gray-500 dark:text-gray-400'
             }`}
           >
             <TerminalIcon size={18} className="mr-2" />
@@ -356,7 +358,7 @@ function App() {
             className={`flex-1 flex items-center justify-center py-3 px-4 text-sm font-medium ${
               activeTab === 'chat'
                 ? 'text-linuxdo-600 border-b-2 border-linuxdo-600'
-                : 'text-gray-500'
+                : 'text-gray-500 dark:text-gray-400'
             }`}
           >
             <MessageCircle size={18} className="mr-2" />
@@ -367,7 +369,7 @@ function App() {
             className={`flex-1 flex items-center justify-center py-3 px-4 text-sm font-medium ${
               activeTab === 'users'
                 ? 'text-linuxdo-600 border-b-2 border-linuxdo-600'
-                : 'text-gray-500'
+                : 'text-gray-500 dark:text-gray-400'
             }`}
           >
             <Users size={18} className="mr-2" />
@@ -429,4 +431,13 @@ function App() {
   );
 }
 
-export default App;
+// 包装App组件在ThemeProvider中
+const AppWithTheme = () => {
+  return (
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
+  );
+};
+
+export default AppWithTheme;
