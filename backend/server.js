@@ -3,15 +3,16 @@ const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
 const path = require('path');
-const session = require('express-session');
-const passport = require('passport');
+// const session = require('express-session');
+// const passport = require('passport');
 
 const ContainerManager = require('./services/containerManager');
 const ChatService = require('./services/chatService');
 const TerminalService = require('./services/terminalService');
-const LinuxDoStrategy = require('./auth/linuxdo-strategy');
-const oauthConfig = require('./config/oauth');
-const authRoutes = require('./routes/auth');
+const UserService = require('./services/userService');
+// const LinuxDoStrategy = require('./auth/linuxdo-strategy');
+// const oauthConfig = require('./config/oauth');
+// const authRoutes = require('./routes/auth');
 
 const app = express();
 const server = http.createServer(app);
@@ -30,40 +31,41 @@ app.use(cors({
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
-// Session配置
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'linuxdo-webssh-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000 // 24小时
-  }
-}));
+// Session配置 (注释掉OAuth相关)
+// app.use(session({
+//   secret: process.env.SESSION_SECRET || 'linuxdo-webssh-secret-key',
+//   resave: false,
+//   saveUninitialized: false,
+//   cookie: {
+//     secure: process.env.NODE_ENV === 'production',
+//     maxAge: 24 * 60 * 60 * 1000 // 24小时
+//   }
+// }));
 
-// Passport配置
-app.use(passport.initialize());
-app.use(passport.session());
+// Passport配置 (注释掉OAuth相关)
+// app.use(passport.initialize());
+// app.use(passport.session());
 
-// 配置LinuxDo OAuth策略
-passport.use(new LinuxDoStrategy(oauthConfig.linuxdo, (accessToken, refreshToken, profile, done) => {
-  // 这里可以保存用户信息到数据库
-  return done(null, profile);
-}));
+// 配置LinuxDo OAuth策略 (注释掉OAuth相关)
+// passport.use(new LinuxDoStrategy(oauthConfig.linuxdo, (accessToken, refreshToken, profile, done) => {
+//   // 这里可以保存用户信息到数据库
+//   return done(null, profile);
+// }));
 
-passport.serializeUser((user, done) => {
-  done(null, user);
-});
+// passport.serializeUser((user, done) => {
+//   done(null, user);
+// });
 
-passport.deserializeUser((user, done) => {
-  done(null, user);
-});
+// passport.deserializeUser((user, done) => {
+//   done(null, user);
+// });
 
-// 认证路由
-app.use('/auth', authRoutes);
+// 认证路由 (注释掉OAuth相关)
+// app.use('/auth', authRoutes);
 
 // 服务实例
-const containerManager = new ContainerManager();
+const userService = new UserService();
+const containerManager = new ContainerManager(userService);
 const chatService = new ChatService();
 const terminalService = new TerminalService(containerManager);
 
@@ -160,7 +162,8 @@ io.on('connection', (socket) => {
 
       socket.emit('container-ready', {
         containerId: result.containerId,
-        username
+        username,
+        message: result.message
       });
 
       // 通知其他用户

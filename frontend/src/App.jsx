@@ -137,10 +137,13 @@ function App() {
       setProgress(data);
     });
 
-    socketInstance.on('container-ready', () => {
+    socketInstance.on('container-ready', (data) => {
       setIsConnected(true);
       setIsCreatingContainer(false);
-      setProgress({ progress: 100, message: '容器就绪!' });
+      setProgress({
+        progress: 100,
+        message: data.message || '容器就绪!'
+      });
     });
 
     socketInstance.on('chat-message', (message) => {

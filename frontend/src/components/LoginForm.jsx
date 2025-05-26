@@ -38,8 +38,8 @@ const LoginForm = ({ onLogin, error }) => {
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
-      {/* LinuxDo登录选项 */}
-      <div className="mb-6">
+      {/* LinuxDo登录选项 (暂时注释掉) */}
+      {/* <div className="mb-6">
         <button
           onClick={handleLinuxDoLogin}
           className="w-full flex items-center justify-center px-4 py-3 border border-linuxdo-300 rounded-lg text-sm font-medium text-linuxdo-700 bg-linuxdo-50 hover:bg-linuxdo-100 transition-colors"
@@ -56,7 +56,7 @@ const LoginForm = ({ onLogin, error }) => {
           <div className="px-3 text-sm text-gray-500">或</div>
           <div className="flex-1 border-t border-gray-300"></div>
         </div>
-      </div>
+      </div> */}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

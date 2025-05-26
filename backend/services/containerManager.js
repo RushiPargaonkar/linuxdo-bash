@@ -2,10 +2,11 @@ const Docker = require('dockerode');
 const validator = require('validator');
 
 class ContainerManager {
-  constructor() {
+  constructor(userService) {
     this.docker = new Docker();
     this.containers = new Map(); // username -> { containerId, createdAt }
     this.CONTAINER_LIFETIME = 2 * 60 * 60 * 1000; // 2小时
+    this.userService = userService;
   }
 
   /**
@@ -26,41 +27,112 @@ class ContainerManager {
   }
 
   /**
-   * 获取或创建用户容器
+   * 获取或创建用户容器 - 支持一人一号逻辑
    */
   async getOrCreateContainer(username) {
-    // 检查是否已有容器
-    if (this.containers.has(username)) {
-      const containerInfo = this.containers.get(username);
+    const containerName = `linuxdo-${username}`;
 
-      // 检查容器是否还在运行
-      try {
-        const container = this.docker.getContainer(containerInfo.containerId);
-        const info = await container.inspect();
+    try {
+      // 1. 检查用户是否已存在于数据库
+      if (this.userService) {
+        const existingUser = await this.userService.getUser(username);
+        if (existingUser) {
+          console.log(`用户 ${username} 已存在，检查容器状态...`);
 
-        if (info.State.Running) {
-          return {
-            containerId: containerInfo.containerId,
-            isNew: false
-          };
+          // 检查容器是否还在运行
+          const containers = await this.docker.listContainers({ all: true });
+          const existingContainer = containers.find(container =>
+            container.Names.some(name => name === `/${containerName}`)
+          );
+
+          if (existingContainer) {
+            // 容器存在，启动它（如果未运行）
+            const container = this.docker.getContainer(existingContainer.Id);
+            if (existingContainer.State !== 'running') {
+              console.log(`启动现有容器 ${containerName}...`);
+              await container.start();
+            }
+
+            // 更新最后登录时间
+            await this.userService.updateLastLogin(username);
+
+            // 记录容器信息到内存
+            this.containers.set(username, {
+              containerId: existingContainer.Id,
+              createdAt: Date.now()
+            });
+
+            return {
+              containerId: existingContainer.Id,
+              isNew: false,
+              message: '欢迎回来！你的容器已恢复'
+            };
+          } else {
+            // 用户存在但容器不存在，重新创建
+            console.log(`用户 ${username} 的容器已丢失，重新创建...`);
+            const containerId = await this.createContainer(username);
+
+            // 更新最后登录时间
+            await this.userService.updateLastLogin(username);
+
+            this.containers.set(username, {
+              containerId,
+              createdAt: Date.now()
+            });
+
+            return {
+              containerId,
+              isNew: true,
+              message: '你的容器已重新创建'
+            };
+          }
         }
-      } catch (error) {
-        // 容器不存在，从映射中移除
-        this.containers.delete(username);
       }
+
+      // 2. 新用户，检查内存中是否有容器记录
+      if (this.containers.has(username)) {
+        const containerInfo = this.containers.get(username);
+        try {
+          const container = this.docker.getContainer(containerInfo.containerId);
+          const info = await container.inspect();
+
+          if (info.State.Running) {
+            return {
+              containerId: containerInfo.containerId,
+              isNew: false,
+              message: '容器已就绪'
+            };
+          }
+        } catch (error) {
+          // 容器不存在，从映射中移除
+          this.containers.delete(username);
+        }
+      }
+
+      // 3. 创建新容器
+      const containerId = await this.createContainer(username);
+
+      // 4. 记录新用户到数据库
+      if (this.userService) {
+        await this.userService.createUser(username, containerId, containerName);
+        console.log(`新用户 ${username} 已注册`);
+      }
+
+      // 记录容器信息到内存
+      this.containers.set(username, {
+        containerId,
+        createdAt: Date.now()
+      });
+
+      return {
+        containerId,
+        isNew: true,
+        message: '欢迎来到LinuxDo自习室！'
+      };
+    } catch (error) {
+      console.error('获取或创建容器失败:', error);
+      throw error;
     }
-
-    // 创建新容器
-    const containerId = await this.createContainer(username);
-    this.containers.set(username, {
-      containerId,
-      createdAt: Date.now()
-    });
-
-    return {
-      containerId,
-      isNew: true
-    };
   }
 
   /**
