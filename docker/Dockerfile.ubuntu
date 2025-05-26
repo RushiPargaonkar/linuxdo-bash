@@ -1,0 +1,37 @@
+FROM ubuntu:22.04
+
+# 设置非交互模式
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 更新系统并安装基础软件
+RUN apt-get update && apt-get install -y \
+    sudo \
+    curl \
+    wget \
+    git \
+    vim \
+    nano \
+    htop \
+    tree \
+    unzip \
+    build-essential \
+    python3 \
+    python3-pip \
+    nodejs \
+    npm \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# 创建sudo组（如果不存在）
+RUN groupadd -f sudo
+
+# 设置默认shell
+RUN echo "dash dash/sh boolean false" | debconf-set-selections && \
+    dpkg-reconfigure -f noninteractive dash
+
+# 创建欢迎脚本
+RUN echo '#!/bin/bash\necho "🎉 欢迎来到LinuxDo自习室！"\necho "📁 你现在在一个独立的Ubuntu 22.04容器中"\necho "🔧 可以自由安装软件包和进行实验"\necho "⏰ 容器将在2小时后自动销毁"\necho "📖 输入 \"cat welcome.txt\" 查看更多信息"' > /usr/local/bin/welcome && \
+    chmod +x /usr/local/bin/welcome
+
+WORKDIR /root
+CMD ["/bin/bash"]

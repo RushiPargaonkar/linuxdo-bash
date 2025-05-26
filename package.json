@@ -1,0 +1,20 @@
+{
+  "name": "linuxdo-webssh",
+  "version": "1.0.0",
+  "description": "LinuxDo自习室 - 一人一个容器的WebSSH系统",
+  "main": "backend/server.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
+  },
+  "keywords": ["webssh", "docker", "terminal", "chat"],
+  "author": "LinuxDo Community",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
