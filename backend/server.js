@@ -86,7 +86,9 @@ const activeUsers = new Set();
 
 // 获取在线用户列表
 function getActiveUsersList() {
-  return Array.from(activeUsers);
+  const userList = Array.from(activeUsers);
+  console.log('getActiveUsersList 被调用，当前用户:', userList);
+  return userList;
 }
 
 // 广播用户列表更新
@@ -197,7 +199,9 @@ io.on('connection', (socket) => {
       });
 
       // 添加到在线用户列表
+      console.log('用户加入前 activeUsers:', Array.from(activeUsers));
       activeUsers.add(username);
+      console.log('用户加入后 activeUsers:', Array.from(activeUsers));
 
       // 通知其他用户有新用户加入
       socket.broadcast.emit('user-joined', { username });
@@ -305,11 +309,9 @@ io.on('connection', (socket) => {
     const userList = getActiveUsersList();
     console.log('用户请求用户列表:', socket.username, '当前列表:', userList);
 
-    // 发送给请求的用户
-    socket.emit('user-list-updated', userList);
-
-    // 同时广播给所有其他用户，确保同步
-    socket.broadcast.emit('user-list-updated', userList);
+    // 强制广播给所有用户（包括请求者），确保完全同步
+    io.emit('user-list-updated', userList);
+    console.log('已广播用户列表给所有用户:', userList);
   });
 
   // 重置容器
@@ -407,7 +409,9 @@ io.on('connection', (socket) => {
 
     if (socket.username) {
       // 从在线用户列表中移除
+      console.log('用户离开前 activeUsers:', Array.from(activeUsers));
       activeUsers.delete(socket.username);
+      console.log('用户离开后 activeUsers:', Array.from(activeUsers));
 
       // 通知其他用户
       socket.broadcast.emit('user-left', { username: socket.username });
