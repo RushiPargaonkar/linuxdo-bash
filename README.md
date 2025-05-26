@@ -48,25 +48,67 @@ npm run install:all
 
 3. **启动服务**
 ```bash
+# 推荐：使用新的一键启动脚本
+./start-all.sh
+
+# 或者使用传统启动脚本
 ./start.sh
 ```
 
 4. **访问应用**
 - 前端: http://localhost:5173
 - 后端API: http://localhost:3001
+- WebSSH: http://localhost:3002
+
+## 🛠️ 服务管理
+
+### 一键启动（推荐）
+```bash
+./start-all.sh              # 完整启动（首次使用）
+./start-all.sh --skip-deps  # 跳过依赖安装
+./start-all.sh --skip-build # 跳过Docker构建
+```
+
+### 停止服务
+```bash
+./stop-all.sh                    # 正常停止
+./stop-all.sh --force           # 强制停止所有进程
+./stop-all.sh --clean-containers # 同时删除Docker容器
+```
+
+### 重启服务
+```bash
+./restart-all.sh              # 快速重启
+./restart-all.sh --full       # 完整重启（重新安装依赖和构建）
+./restart-all.sh --with-deps  # 重启并重新安装依赖
+```
+
+### 查看日志
+```bash
+# 查看所有日志
+tail -f logs/*.log
+
+# 查看特定服务日志
+tail -f logs/backend.log   # 后端API日志
+tail -f logs/webssh.log    # WebSSH服务日志
+tail -f logs/frontend.log  # 前端开发服务器日志
+```
 
 ### 手动启动
 
-如果不使用启动脚本，可以手动启动：
+如果需要手动启动各个服务：
 
 ```bash
-# 构建Docker镜像
+# 1. 构建Docker镜像
 docker build -t linuxdo-ubuntu:latest -f docker/Dockerfile.ubuntu .
 
-# 启动后端
+# 2. 启动后端API服务
 cd backend && npm start &
 
-# 启动前端
+# 3. 启动WebSSH服务
+cd backend && node webssh-server.js &
+
+# 4. 启动前端服务
 cd frontend && npm run dev
 ```
 
@@ -84,12 +126,18 @@ linuxdo-webssh/
 │   ├── services/       # 业务逻辑服务
 │   │   ├── containerManager.js  # Docker容器管理
 │   │   ├── terminalService.js   # 终端服务
-│   │   └── chatService.js       # 聊天服务
-│   ├── database/       # SQLite数据库
-│   └── server.js       # 服务器入口
+│   │   ├── chatService.js       # 聊天服务
+│   │   └── userService.js       # 用户管理服务
+│   ├── data/           # SQLite数据库文件
+│   ├── server.js       # 主API服务器
+│   └── webssh-server.js # WebSSH服务器
 ├── docker/             # Docker配置
 │   └── Dockerfile.ubuntu
-└── start.sh           # 启动脚本
+├── logs/               # 服务日志文件
+├── start-all.sh        # 一键启动脚本（推荐）
+├── stop-all.sh         # 停止服务脚本
+├── restart-all.sh      # 重启服务脚本
+└── start.sh            # 传统启动脚本
 ```
 
 ## 🔧 技术栈

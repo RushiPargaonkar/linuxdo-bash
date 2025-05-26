@@ -1,0 +1,9 @@
+
+> linuxdo-webssh-backend@1.0.0 start
+> node server.js
+
+LinuxDo WebSSH服务器运行在端口 3001
+用户数据库连接成功
+SQLite数据库连接成功
+用户表初始化完成
+消息表初始化完成
