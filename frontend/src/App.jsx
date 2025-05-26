@@ -374,13 +374,23 @@ function App() {
           </div>
         </div>
 
-        {/* 其他用户终端展示区域 */}
+        {/* 其他用户终端展示区域 - 和bash终端同宽 */}
         <div className="mt-8">
-          <OtherUsersTerminals
-            socket={socket}
-            currentUsername={username}
-            activeUsers={activeUsers}
-          />
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* 其他用户终端展示区域 - 固定和bash终端相同的宽度(3/4) */}
+            <div className="lg:col-span-3">
+              <OtherUsersTerminals
+                socket={socket}
+                currentUsername={username}
+                activeUsers={activeUsers}
+              />
+            </div>
+
+            {/* 右侧空白区域，保持和侧边栏同宽(1/4) */}
+            <div className="hidden lg:block lg:col-span-1">
+              {/* 保持空白，确保其他用户终端框和bash终端同宽 */}
+            </div>
+          </div>
         </div>
       </div>
     </div>
