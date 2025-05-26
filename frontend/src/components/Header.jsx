@@ -6,8 +6,8 @@ const Header = ({ username, onLogout, onlineCount = 0 }) => {
   return (
     <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo和标题 */}
+        <div className="flex items-center h-16">
+          {/* 左侧：Logo和标题 */}
           <div className="flex items-center space-x-3">
             <div className="flex items-center justify-center w-10 h-10 bg-linuxdo-500 text-white rounded-lg">
               <Terminal size={24} />
@@ -22,7 +22,19 @@ const Header = ({ username, onLogout, onlineCount = 0 }) => {
             </div>
           </div>
 
-          {/* 用户信息和操作 */}
+          {/* 中间：通知栏 */}
+          <div className="hidden lg:flex flex-1 justify-center mx-8">
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-4 py-2 max-w-md">
+              <div className="flex items-center space-x-2">
+                <span className="text-blue-600 dark:text-blue-400 text-sm">📢</span>
+                <span className="text-blue-800 dark:text-blue-200 text-sm font-medium">
+                  欢迎使用LinuxDo自习室！支持多用户在线协作学习
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 右侧：用户信息和操作 */}
           <div className="flex items-center space-x-4">
             {username && (
               <>
