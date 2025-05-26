@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, User, Monitor, Eye } from 'lucide-react';
+import { getUserAvatarColor, getUserInitial, getUserAvatar } from '../utils/avatarColors';
 
 const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
   const [userLikes, setUserLikes] = useState({});
   const [terminalOutputs, setTerminalOutputs] = useState({});
+  const [userAvatars, setUserAvatars] = useState({});
 
   // 过滤掉当前用户，只显示其他用户
   const otherUsers = activeUsers.filter(user => user !== currentUsername);
@@ -12,6 +14,22 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
   console.log('OtherUsersTerminals - activeUsers:', activeUsers);
   console.log('OtherUsersTerminals - currentUsername:', currentUsername);
   console.log('OtherUsersTerminals - otherUsers:', otherUsers);
+
+  // 加载用户头像设置
+  useEffect(() => {
+    const loadUserAvatars = () => {
+      const avatars = {};
+      otherUsers.forEach(username => {
+        const avatar = getUserAvatar(username);
+        if (avatar) {
+          avatars[username] = avatar;
+        }
+      });
+      setUserAvatars(avatars);
+    };
+
+    loadUserAvatars();
+  }, [otherUsers]);
 
   useEffect(() => {
     if (!socket) return;
@@ -66,7 +84,7 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
   const formatTerminalOutput = (output) => {
     if (!output) return '';
 
-    // 清理终端控制序列和冗余提示符
+    // 清理终端控制序列，但保留更多有用信息
     let cleaned = output
       // 移除ANSI转义序列
       .replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '')
@@ -74,18 +92,22 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
       .replace(/\[\?[0-9]+[hl]/g, '')
       // 移除窗口标题设置
       .replace(/\x1b\]0;[^\x07]*\x07/g, '')
-      // 移除重复的提示符
-      .replace(/root@[a-f0-9]+:[^\$#]*[\$#]\s*root@[a-f0-9]+:[^\$#]*[\$#]/g, 'root@container:~# ')
-      // 简化长提示符
-      .replace(/root@[a-f0-9]{12,}:[^\$#]*[\$#]/g, 'root@container:~# ')
-      // 移除多余的空行
-      .replace(/\n\s*\n/g, '\n')
+      // 简化长提示符，但保留路径信息
+      .replace(/root@[a-f0-9]{12,}:([^\$#]*[\$#])/g, 'root@container:$1')
+      // 移除连续的空行，但保留单个空行
+      .replace(/\n\s*\n\s*\n/g, '\n\n')
       .trim();
 
-    // 只显示最后几行，避免内容过长
+    // 显示更多行，让用户能看到完整的命令历史
     const lines = cleaned.split('\n');
-    const lastLines = lines.slice(-8); // 显示最后8行
-    return lastLines.join('\n');
+
+    // 如果内容太多，显示最后30行，确保能看到足够的上下文
+    if (lines.length > 30) {
+      const lastLines = lines.slice(-30);
+      return '...\n' + lastLines.join('\n');
+    }
+
+    return cleaned;
   };
 
   if (otherUsers.length === 0) {
@@ -119,8 +141,8 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
               {/* 用户头部 */}
               <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 border-b border-gray-200 dark:border-gray-600 flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <User className="h-4 w-4 text-white" />
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-medium text-sm ${getUserAvatarColor(username, userAvatars[username])}`}>
+                    {getUserInitial(username, userAvatars[username])}
                   </div>
                   <div>
                     <div className="font-medium text-gray-900 dark:text-gray-100">{username}</div>
@@ -147,7 +169,7 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
               </div>
 
               {/* 终端内容 */}
-              <div className="bg-black text-green-400 p-3 h-32 overflow-hidden">
+              <div className="bg-black text-green-400 p-3 h-64 overflow-y-auto">
                 <div className="font-mono text-xs whitespace-pre-wrap">
                   {formatTerminalOutput(terminalOutputs[username]) || (
                     <div className="text-gray-500 italic">
