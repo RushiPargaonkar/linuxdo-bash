@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Heart, User, Monitor, Eye } from 'lucide-react';
 import { getUserAvatarColor, getUserInitial, getUserAvatar } from '../utils/avatarColors';
 
@@ -6,6 +6,7 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
   const [userLikes, setUserLikes] = useState({});
   const [terminalOutputs, setTerminalOutputs] = useState({});
   const [userAvatars, setUserAvatars] = useState({});
+  const terminalRefs = useRef({});
 
   // 过滤掉当前用户，只显示其他用户
   const otherUsers = activeUsers.filter(user => user !== currentUsername);
@@ -42,6 +43,11 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
           ...prev,
           [username]: (prev[username] || '') + output
         }));
+
+        // 延迟滚动，确保DOM已更新
+        setTimeout(() => {
+          scrollToBottom(username);
+        }, 50);
       }
     });
 
@@ -74,6 +80,14 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
       socket.off('user-liked');
     };
   }, [socket, currentUsername]);
+
+  // 自动滚动到底部
+  const scrollToBottom = (username) => {
+    const terminalElement = terminalRefs.current[username];
+    if (terminalElement) {
+      terminalElement.scrollTop = terminalElement.scrollHeight;
+    }
+  };
 
   const handleLikeUser = (username) => {
     if (socket) {
@@ -169,7 +183,10 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
               </div>
 
               {/* 终端内容 */}
-              <div className="bg-black text-green-400 p-3 h-64 overflow-y-auto">
+              <div
+                ref={(el) => terminalRefs.current[username] = el}
+                className="bg-black text-green-400 p-3 h-64 overflow-y-auto"
+              >
                 <div className="font-mono text-xs whitespace-pre-wrap">
                   {formatTerminalOutput(terminalOutputs[username]) || (
                     <div className="text-gray-500 italic">
