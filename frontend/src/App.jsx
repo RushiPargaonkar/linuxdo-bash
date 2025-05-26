@@ -357,14 +357,15 @@ function App() {
       </div>
 
       <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* 上半部分：终端和侧边栏 */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
           {/* 终端区域 */}
           <div className={`lg:col-span-3 ${activeTab !== 'terminal' ? 'hidden lg:block' : ''}`}>
             <Terminal socket={socket} username={username} />
           </div>
 
-          {/* 侧边栏 */}
-          <div className="lg:col-span-1 space-y-6">
+          {/* 侧边栏 - 固定高度，避免影响下面的布局 */}
+          <div className="lg:col-span-1 space-y-6 lg:h-[600px] lg:overflow-y-auto">
             {/* 聊天室 */}
             <div className={`${activeTab !== 'chat' ? 'hidden lg:block' : ''}`}>
               <Chat
@@ -381,26 +382,26 @@ function App() {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* 其他用户终端展示区域 - 和bash终端同宽 */}
-        <div className="mt-8">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* 其他用户终端展示区域 - 固定和bash终端相同的宽度(3/4) */}
-            <div className="lg:col-span-3">
-              {/* 调试信息 */}
-              {console.log('App.jsx - activeUsers:', activeUsers)}
-              {console.log('App.jsx - username:', username)}
-              <OtherUsersTerminals
-                socket={socket}
-                currentUsername={username}
-                activeUsers={activeUsers}
-              />
-            </div>
+      {/* 下半部分：其他用户终端展示区域 - 完全独立的容器 */}
+      <div className="container mx-auto px-4 pb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* 其他用户终端展示区域 - 固定和bash终端相同的宽度(3/4) */}
+          <div className="lg:col-span-3">
+            {/* 调试信息 */}
+            {console.log('App.jsx - activeUsers:', activeUsers)}
+            {console.log('App.jsx - username:', username)}
+            <OtherUsersTerminals
+              socket={socket}
+              currentUsername={username}
+              activeUsers={activeUsers}
+            />
+          </div>
 
-            {/* 右侧空白区域，保持和侧边栏同宽(1/4) */}
-            <div className="hidden lg:block lg:col-span-1">
-              {/* 保持空白，确保其他用户终端框和bash终端同宽 */}
-            </div>
+          {/* 右侧空白区域，保持和侧边栏同宽(1/4) */}
+          <div className="hidden lg:block lg:col-span-1">
+            {/* 保持空白，确保其他用户终端框和bash终端同宽 */}
           </div>
         </div>
       </div>
