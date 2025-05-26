@@ -1,8 +1,57 @@
-import React from 'react';
-import { Terminal, LogOut, Github, Heart } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Terminal, LogOut, Github, Heart, Bell, X } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
 const Header = ({ username, onLogout, onlineCount = 0 }) => {
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notificationRef = useRef(null);
+
+  // 硬编码的通知内容，可以随时修改
+  const notifications = [
+    {
+      id: 1,
+      title: "欢迎使用LinuxDo自习室！",
+      content: "支持多用户在线协作学习，每人一个独立的Ubuntu容器环境。",
+      time: "2024-01-15",
+      type: "info"
+    },
+    {
+      id: 2,
+      title: "新功能上线",
+      content: "现在支持终端复制粘贴功能，使用Ctrl+Shift+C/V进行操作。",
+      time: "2024-01-14",
+      type: "feature"
+    },
+    {
+      id: 3,
+      title: "聊天室更新",
+      content: "聊天室现在支持Shift+Enter换行，可以发送多行消息了！",
+      time: "2024-01-13",
+      type: "update"
+    }
+  ];
+
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
+  };
+
+  // 点击外部关闭通知弹窗
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+    };
+
+    if (showNotifications) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showNotifications]);
+
   return (
     <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
       <div className="container mx-auto px-4">
@@ -22,16 +71,55 @@ const Header = ({ username, onLogout, onlineCount = 0 }) => {
             </div>
           </div>
 
-          {/* 中间：通知栏 */}
-          <div className="hidden lg:flex flex-1 justify-center mx-8">
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-4 py-2 max-w-md">
-              <div className="flex items-center space-x-2">
-                <span className="text-blue-600 dark:text-blue-400 text-sm">📢</span>
-                <span className="text-blue-800 dark:text-blue-200 text-sm font-medium">
-                  欢迎使用LinuxDo自习室！支持多用户在线协作学习
-                </span>
+          {/* 中间：通知按钮 */}
+          <div className="hidden lg:flex flex-1 justify-center mx-8 relative">
+            <button
+              onClick={toggleNotifications}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 relative"
+            >
+              <Bell size={16} className="animate-pulse" />
+              <span className="text-sm font-medium">点我查看通知</span>
+              {/* 高亮小红点 */}
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
+            </button>
+
+            {/* 通知弹窗 */}
+            {showNotifications && (
+              <div ref={notificationRef} className="absolute top-full mt-2 w-96 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-50">
+                <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">系统通知</h3>
+                  <button
+                    onClick={toggleNotifications}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {notifications.map((notification) => (
+                    <div key={notification.id} className="p-4 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+                      <div className="flex items-start space-x-3">
+                        <div className={`w-2 h-2 rounded-full mt-2 ${
+                          notification.type === 'info' ? 'bg-blue-500' :
+                          notification.type === 'feature' ? 'bg-green-500' :
+                          'bg-purple-500'
+                        }`}></div>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                            {notification.title}
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                            {notification.content}
+                          </p>
+                          <span className="text-xs text-gray-400">{notification.time}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* 右侧：用户信息和操作 */}
