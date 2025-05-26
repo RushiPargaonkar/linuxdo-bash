@@ -79,7 +79,7 @@ const LoginForm = ({ onLogin, error }) => {
   const isValid = username && password && validateUsername(username) && validatePassword(password);
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
       {/* LinuxDo登录选项 (暂时注释掉) */}
       {/* <div className="mb-6">
         <button
@@ -102,12 +102,12 @@ const LoginForm = ({ onLogin, error }) => {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             用户名
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <User className="h-5 w-5 text-gray-400" />
+              <User className="h-5 w-5 text-gray-400 dark:text-gray-500" />
             </div>
             <input
               type="text"
@@ -115,10 +115,10 @@ const LoginForm = ({ onLogin, error }) => {
               value={username}
               onChange={(e) => setUsername(e.target.value.toLowerCase())}
               placeholder="输入你的用户名"
-              className={`block w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-linuxdo-500 focus:border-transparent ${
+              className={`block w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-linuxdo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
                 username && !isValid
-                  ? 'border-red-300 bg-red-50'
-                  : 'border-gray-300'
+                  ? 'border-red-300 bg-red-50 dark:border-red-600 dark:bg-red-900/20'
+                  : 'border-gray-300 dark:border-gray-600'
               }`}
               disabled={isLoading}
               autoComplete="username"
@@ -127,7 +127,7 @@ const LoginForm = ({ onLogin, error }) => {
           </div>
 
           {/* 用户名规则提示 */}
-          <div className="mt-2 text-xs text-gray-500">
+          <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
             <p>用户名规则：</p>
             <ul className="list-disc list-inside space-y-1 mt-1">
               <li>只能包含小写字母、数字、下划线、连字符</li>
@@ -138,7 +138,7 @@ const LoginForm = ({ onLogin, error }) => {
 
           {/* 验证错误提示 */}
           {username && !validateUsername(username) && (
-            <div className="mt-2 flex items-center text-sm text-red-600">
+            <div className="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
               <AlertCircle size={16} className="mr-1" />
               用户名格式不正确
             </div>
@@ -147,12 +147,12 @@ const LoginForm = ({ onLogin, error }) => {
 
         {/* 密码输入框 */}
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             密码
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Lock className="h-5 w-5 text-gray-400" />
+              <Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
             </div>
             <input
               type="password"
@@ -160,10 +160,10 @@ const LoginForm = ({ onLogin, error }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="设置你的密码"
-              className={`block w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-linuxdo-500 focus:border-transparent ${
+              className={`block w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-linuxdo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
                 password && !validatePassword(password)
-                  ? 'border-red-300 bg-red-50'
-                  : 'border-gray-300'
+                  ? 'border-red-300 bg-red-50 dark:border-red-600 dark:bg-red-900/20'
+                  : 'border-gray-300 dark:border-gray-600'
               }`}
               disabled={isLoading}
               autoComplete="new-password"
@@ -171,7 +171,7 @@ const LoginForm = ({ onLogin, error }) => {
           </div>
 
           {/* 密码规则提示 */}
-          <div className="mt-2 text-xs text-gray-500">
+          <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
             <p>密码规则：</p>
             <ul className="list-disc list-inside space-y-1 mt-1">
               <li>至少6位字符</li>
@@ -181,7 +181,7 @@ const LoginForm = ({ onLogin, error }) => {
 
           {/* 密码验证错误提示 */}
           {password && !validatePassword(password) && (
-            <div className="mt-2 flex items-center text-sm text-red-600">
+            <div className="mt-2 flex items-center text-sm text-red-600 dark:text-red-400">
               <AlertCircle size={16} className="mr-1" />
               密码格式不正确
             </div>
@@ -196,9 +196,9 @@ const LoginForm = ({ onLogin, error }) => {
               type="checkbox"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="h-4 w-4 text-linuxdo-600 focus:ring-linuxdo-500 border-gray-300 rounded"
+              className="h-4 w-4 text-linuxdo-600 focus:ring-linuxdo-500 border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700"
             />
-            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
               记住账号密码
             </label>
           </div>
@@ -216,7 +216,7 @@ const LoginForm = ({ onLogin, error }) => {
                   alert('账号信息已清除');
                 }
               }}
-              className="text-xs text-gray-500 hover:text-gray-700 underline"
+              className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 underline"
             >
               清除保存的账号
             </button>
@@ -225,8 +225,8 @@ const LoginForm = ({ onLogin, error }) => {
 
         {/* 服务器错误提示 */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-            <div className="flex items-center text-sm text-red-600">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+            <div className="flex items-center text-sm text-red-600 dark:text-red-400">
               <AlertCircle size={16} className="mr-2" />
               {error}
             </div>
@@ -257,14 +257,14 @@ const LoginForm = ({ onLogin, error }) => {
       </form>
 
       {/* 示例用户名 */}
-      <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-        <p className="text-xs text-gray-600 mb-2">示例用户名：</p>
+      <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+        <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">示例用户名：</p>
         <div className="flex flex-wrap gap-2">
           {['alice', 'bob123', 'dev_user', 'test-user'].map((example) => (
             <button
               key={example}
               onClick={() => setUsername(example)}
-              className="px-2 py-1 text-xs bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
+              className="px-2 py-1 text-xs bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors text-gray-700 dark:text-gray-200"
               disabled={isLoading}
             >
               {example}
