@@ -158,7 +158,7 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
       </div>
 
       <div className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {otherUsers.map((username) => (
             <div key={username} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
               {/* 用户头部 */}
