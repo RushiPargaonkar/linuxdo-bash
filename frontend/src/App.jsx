@@ -85,6 +85,11 @@ function App() {
       setIsCreatingContainer(false);
       setIsConnected(true);
       setError('');
+
+      // 容器就绪后立即请求用户列表
+      setTimeout(() => {
+        newSocket.emit('get-user-list');
+      }, 500);
     });
 
     newSocket.on('user-joined', (data) => {
@@ -98,7 +103,7 @@ function App() {
     });
 
     newSocket.on('user-list-updated', (userList) => {
-      console.log('用户列表更新:', userList);
+      console.log('用户列表更新 (主监听器):', userList);
       setActiveUsers(userList);
     });
 

@@ -92,6 +92,7 @@ function getActiveUsersList() {
 // 广播用户列表更新
 function broadcastUserList() {
   const userList = getActiveUsersList();
+  console.log('广播用户列表:', userList);
   io.emit('user-list-updated', userList);
 }
 
@@ -198,11 +199,15 @@ io.on('connection', (socket) => {
       // 添加到在线用户列表
       activeUsers.add(username);
 
-      // 通知其他用户
+      // 立即发送完整用户列表给新用户
+      const userList = getActiveUsersList();
+      socket.emit('user-list-updated', userList);
+
+      // 通知其他用户有新用户加入
       socket.broadcast.emit('user-joined', { username });
 
-      // 广播更新后的用户列表
-      broadcastUserList();
+      // 广播更新后的用户列表给其他用户
+      socket.broadcast.emit('user-list-updated', userList);
 
     } catch (error) {
       console.error('用户加入失败:', error);
