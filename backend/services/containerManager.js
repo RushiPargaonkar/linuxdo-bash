@@ -298,7 +298,27 @@ CMD ["/bin/bash"]
       // 设置用户目录权限
       `chown -R ${username}:${username} /home/${username}`,
       // 创建欢迎文件
-      `echo "欢迎来到LinuxDo自习室！\\n你现在在一个独立的Ubuntu 22.04容器中。\\n可以自由安装软件包和进行实验。\\n\\n容器将在2小时后自动销毁。" > /home/${username}/welcome.txt`,
+      `cat > /home/${username}/welcome.txt << 'EOF'
+=================================
+   欢迎来到LinuxDo自习室！
+=================================
+
+系统信息:
+  - Ubuntu 22.04 LTS
+  - 内存限制: 512MB
+  - 容器生命周期: 2小时
+
+当前用户: ${username}
+工作目录: /home/${username}
+
+可用命令: ls, cd, mkdir, vim, nano, git, python3, node, npm
+安装软件: sudo apt update && sudo apt install <package>
+
+开始你的Linux学习之旅吧！
+=================================
+
+使用 'cat welcome.txt' 随时查看此信息
+EOF`,
       `chown ${username}:${username} /home/${username}/welcome.txt`
     ];
 

@@ -50,16 +50,10 @@ class TerminalService {
 
       this.terminals.set(terminal.pid, terminalSession);
 
-      // 发送欢迎消息
+      // 清理终端显示
       setTimeout(() => {
         terminal.write('clear\n');
-        terminal.write('echo "🎉 欢迎来到LinuxDo自习室！"\n');
-        terminal.write('echo "📁 你现在在一个独立的Ubuntu 22.04容器中"\n');
-        terminal.write('echo "🔧 可以自由安装软件包和进行实验"\n');
-        terminal.write('echo "⏰ 容器将在2小时后自动销毁"\n');
-        terminal.write(`echo "👤 当前用户: ${username}"\n`);
-        terminal.write('pwd\n');
-      }, 1000);
+      }, 500);
 
       console.log(`终端会话创建成功: ${terminal.pid}`);
       return terminalSession;

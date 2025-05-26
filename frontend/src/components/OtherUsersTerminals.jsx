@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Heart, User, Monitor, Eye } from 'lucide-react';
 import { getUserAvatarColor, getUserInitial, getUserAvatar } from '../utils/avatarColors';
 
@@ -11,10 +11,15 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
   // 过滤掉当前用户，只显示其他用户
   const otherUsers = activeUsers.filter(user => user !== currentUsername);
 
-  // 调试信息
-  console.log('OtherUsersTerminals - activeUsers:', activeUsers);
-  console.log('OtherUsersTerminals - currentUsername:', currentUsername);
-  console.log('OtherUsersTerminals - otherUsers:', otherUsers);
+
+
+  // 自动滚动到底部
+  const scrollToBottom = useCallback((username) => {
+    const terminalElement = terminalRefs.current[username];
+    if (terminalElement) {
+      terminalElement.scrollTop = terminalElement.scrollHeight;
+    }
+  }, []);
 
   // 加载用户头像设置
   useEffect(() => {
@@ -30,16 +35,25 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
     };
 
     loadUserAvatars();
-  }, [otherUsers]);
+  }, [otherUsers.length]); // 只依赖用户数量变化，避免无限循环
 
-  // 当终端输出更新时自动滚动到底部
+  // 使用ref来跟踪上一次的输出，只在真正有新内容时滚动
+  const prevTerminalOutputs = useRef({});
+
   useEffect(() => {
     Object.keys(terminalOutputs).forEach(username => {
-      if (otherUsers.includes(username)) {
-        scrollToBottom(username);
+      // 只有当输出真正发生变化且用户在其他用户列表中时才滚动
+      if (
+        terminalOutputs[username] !== prevTerminalOutputs.current[username] &&
+        otherUsers.includes(username)
+      ) {
+        setTimeout(() => scrollToBottom(username), 50);
       }
     });
-  }, [terminalOutputs, otherUsers]);
+
+    // 更新上一次的输出记录
+    prevTerminalOutputs.current = { ...terminalOutputs };
+  }, [terminalOutputs]); // 只依赖terminalOutputs
 
   useEffect(() => {
     if (!socket) return;
@@ -52,11 +66,7 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
           ...prev,
           [username]: (prev[username] || '') + output
         }));
-
-        // 延迟滚动，确保DOM已更新
-        setTimeout(() => {
-          scrollToBottom(username);
-        }, 50);
+        // 滚动由useEffect处理，避免重复滚动
       }
     });
 
@@ -74,9 +84,8 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
     });
 
     // 监听点赞事件（移除限制逻辑）
-    socket.on('user-liked', (data) => {
+    socket.on('user-liked', () => {
       // 点赞事件处理，不需要特殊逻辑
-      console.log('用户点赞:', data);
     });
 
     // 获取初始点赞数据
@@ -89,14 +98,6 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
       socket.off('user-liked');
     };
   }, [socket, currentUsername]);
-
-  // 自动滚动到底部
-  const scrollToBottom = (username) => {
-    const terminalElement = terminalRefs.current[username];
-    if (terminalElement) {
-      terminalElement.scrollTop = terminalElement.scrollHeight;
-    }
-  };
 
   const handleLikeUser = (username) => {
     if (socket) {
