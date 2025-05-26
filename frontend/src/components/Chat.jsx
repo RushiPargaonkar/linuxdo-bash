@@ -35,12 +35,26 @@ const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [userAvatars, setUserAvatars] = useState({});
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
   const emojiPickerRef = useRef(null);
 
-  // 自动滚动到底部
+  // 自动滚动到底部 - 只在聊天容器内滚动，且只在有新消息时滚动
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current && messages.length > 0) {
+      const container = messagesContainerRef.current;
+
+      // 检查用户是否已经滚动到接近底部
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+
+      // 只有当用户在底部附近时才自动滚动
+      if (isNearBottom) {
+        // 使用 requestAnimationFrame 确保 DOM 更新完成后再滚动
+        requestAnimationFrame(() => {
+          container.scrollTop = container.scrollHeight;
+        });
+      }
+    }
   }, [messages]);
 
   // 加载用户头像设置
@@ -150,7 +164,7 @@ const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
       </div>
 
       {/* 消息列表 */}
-      <div className="chat-messages">
+      <div ref={messagesContainerRef} className="chat-messages">
         {Object.keys(groupedMessages).length === 0 ? (
           <div className="text-center text-gray-500 dark:text-gray-400 py-8">
             <MessageCircle size={32} className="mx-auto mb-2 opacity-50" />
