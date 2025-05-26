@@ -379,16 +379,16 @@ function App() {
       </div>
 
       <div className="container mx-auto px-4 py-6 relative">
-        {/* 上半部分：终端区域 - 现在占满整个宽度 */}
+        {/* 上半部分：终端区域 - 使用黄金比例 */}
         <div className="mb-8">
-          {/* 终端区域 - 占据3/4宽度 */}
-          <div className={`lg:w-3/4 ${activeTab !== 'terminal' ? 'hidden lg:block' : ''}`}>
+          {/* 终端区域 - 占据约62%宽度（黄金比例） */}
+          <div className={`lg:w-[62%] ${activeTab !== 'terminal' ? 'hidden lg:block' : ''}`}>
             <Terminal socket={socket} username={username} />
           </div>
         </div>
 
-        {/* 侧边栏 - 绝对定位，脱离文档流，调整为更窄的宽度 */}
-        <div className="lg:absolute lg:top-6 lg:right-4 lg:w-80 space-y-6 z-50">
+        {/* 侧边栏 - 绝对定位，脱离文档流，使用黄金比例的剩余空间 */}
+        <div className="lg:absolute lg:top-6 lg:right-4 lg:w-[36%] space-y-6 z-50">
           {/* 聊天室 */}
           <div className={`${activeTab !== 'chat' ? 'hidden lg:block' : ''}`}>
             <Chat
@@ -406,25 +406,18 @@ function App() {
         </div>
       </div>
 
-      {/* 下半部分：其他用户终端展示区域 - 完全独立的容器 */}
+      {/* 下半部分：其他用户终端展示区域 - 使用黄金比例 */}
       <div className="container mx-auto px-4 pb-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* 其他用户终端展示区域 - 固定和bash终端相同的宽度(3/4) */}
-          <div className="lg:col-span-3">
-            {/* 调试信息 */}
-            {console.log('App.jsx - activeUsers:', activeUsers)}
-            {console.log('App.jsx - username:', username)}
-            <OtherUsersTerminals
-              socket={socket}
-              currentUsername={username}
-              activeUsers={activeUsers}
-            />
-          </div>
-
-          {/* 右侧空白区域，保持和侧边栏同宽(1/4) */}
-          <div className="hidden lg:block lg:col-span-1">
-            {/* 保持空白，确保其他用户终端框和bash终端同宽 */}
-          </div>
+        {/* 其他用户终端展示区域 - 使用和bash终端相同的62%宽度 */}
+        <div className="lg:w-[62%]">
+          {/* 调试信息 */}
+          {console.log('App.jsx - activeUsers:', activeUsers)}
+          {console.log('App.jsx - username:', username)}
+          <OtherUsersTerminals
+            socket={socket}
+            currentUsername={username}
+            activeUsers={activeUsers}
+          />
         </div>
       </div>
     </div>
