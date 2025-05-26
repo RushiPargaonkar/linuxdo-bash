@@ -51,6 +51,14 @@ function App() {
           setTimeout(() => {
             handleLogin(savedUsername, savedPassword);
           }, 1000);
+
+          // 设置自动登录超时，10秒后如果还没成功就取消
+          setTimeout(() => {
+            if (isAutoLogging) {
+              setIsAutoLogging(false);
+              setError('自动登录超时，请手动登录');
+            }
+          }, 10000);
           return;
         }
       } catch (error) {
@@ -76,6 +84,7 @@ function App() {
     newSocket.on('error', (data) => {
       setError(data.message);
       setIsCreatingContainer(false);
+      setIsAutoLogging(false); // 自动登录失败时清除状态
     });
 
     newSocket.on('container-creating', (data) => {
@@ -90,6 +99,7 @@ function App() {
     newSocket.on('container-ready', (data) => {
       setIsCreatingContainer(false);
       setIsConnected(true);
+      setIsAutoLogging(false); // 登录成功，清除自动登录状态
       setError('');
     });
 
@@ -162,6 +172,7 @@ function App() {
     socketInstance.on('container-ready', (data) => {
       setIsConnected(true);
       setIsCreatingContainer(false);
+      setIsAutoLogging(false); // 登录成功，清除自动登录状态
       setProgress({
         progress: 100,
         message: data.message || '容器就绪!'
@@ -201,6 +212,7 @@ function App() {
     socketInstance.on('error', (data) => {
       setError(data.message);
       setIsCreatingContainer(false);
+      setIsAutoLogging(false); // 自动登录失败时清除状态
     });
   };
 
