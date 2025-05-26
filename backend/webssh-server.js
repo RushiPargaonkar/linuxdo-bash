@@ -78,6 +78,90 @@ app.get('/ssh', (req, res) => {
 
             terminal.open(document.getElementById('terminal'));
 
+            // 添加复制粘贴功能
+            // 右键菜单复制粘贴
+            document.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+
+                // 检查是否有选中的文本
+                const selection = terminal.getSelection();
+                if (selection) {
+                    // 有选中文本，复制到剪贴板
+                    navigator.clipboard.writeText(selection).then(() => {
+                        console.log('文本已复制到剪贴板');
+                    }).catch(err => {
+                        console.error('复制失败:', err);
+                    });
+                } else {
+                    // 没有选中文本，尝试粘贴
+                    navigator.clipboard.readText().then(text => {
+                        if (text) {
+                            terminal.paste(text);
+                            console.log('文本已粘贴');
+                        }
+                    }).catch(err => {
+                        console.error('粘贴失败:', err);
+                    });
+                }
+            });
+
+            // 键盘快捷键
+            document.addEventListener('keydown', (e) => {
+                // Ctrl+C 复制
+                if (e.ctrlKey && e.key === 'c' && terminal.hasSelection()) {
+                    e.preventDefault();
+                    const selection = terminal.getSelection();
+                    navigator.clipboard.writeText(selection).then(() => {
+                        console.log('Ctrl+C 复制成功');
+                    }).catch(err => {
+                        console.error('Ctrl+C 复制失败:', err);
+                    });
+                    return;
+                }
+
+                // Ctrl+V 粘贴
+                if (e.ctrlKey && e.key === 'v') {
+                    e.preventDefault();
+                    navigator.clipboard.readText().then(text => {
+                        if (text) {
+                            terminal.paste(text);
+                            console.log('Ctrl+V 粘贴成功');
+                        }
+                    }).catch(err => {
+                        console.error('Ctrl+V 粘贴失败:', err);
+                    });
+                    return;
+                }
+
+                // Ctrl+Shift+C 强制复制
+                if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                    e.preventDefault();
+                    const selection = terminal.getSelection();
+                    if (selection) {
+                        navigator.clipboard.writeText(selection).then(() => {
+                            console.log('Ctrl+Shift+C 复制成功');
+                        }).catch(err => {
+                            console.error('Ctrl+Shift+C 复制失败:', err);
+                        });
+                    }
+                    return;
+                }
+
+                // Ctrl+Shift+V 强制粘贴
+                if (e.ctrlKey && e.shiftKey && e.key === 'V') {
+                    e.preventDefault();
+                    navigator.clipboard.readText().then(text => {
+                        if (text) {
+                            terminal.paste(text);
+                            console.log('Ctrl+Shift+V 粘贴成功');
+                        }
+                    }).catch(err => {
+                        console.error('Ctrl+Shift+V 粘贴失败:', err);
+                    });
+                    return;
+                }
+            });
+
             // 连接到容器
             socket.emit('create-terminal', { username: '${username}' });
 
@@ -156,12 +240,9 @@ io.on('connection', (socket) => {
         delete userTerminals[username];
       });
 
-      // 发送欢迎消息
+      // 清理终端显示
       setTimeout(() => {
         terminal.write('clear\\n');
-        terminal.write('echo "🎉 欢迎来到LinuxDo自习室！"\\n');
-        terminal.write('echo "📁 你现在在一个独立的Ubuntu 22.04容器中"\\n');
-        terminal.write('pwd\\n');
       }, 1000);
 
     } catch (error) {
