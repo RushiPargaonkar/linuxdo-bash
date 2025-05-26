@@ -1,7 +1,13 @@
 import React from 'react';
-import { Terminal, LogOut, Github, Heart } from 'lucide-react';
+import { Terminal, LogOut, Github, Heart, UserX } from 'lucide-react';
 
 const Header = ({ username, onLogout }) => {
+  const handleForgetAccount = () => {
+    if (confirm('确定要清除保存的账号信息吗？下次需要重新输入用户名和密码。')) {
+      localStorage.removeItem('linuxdo-credentials');
+      alert('账号信息已清除');
+    }
+  };
   return (
     <header className="bg-white shadow-sm border-b">
       <div className="container mx-auto px-4">
@@ -32,6 +38,14 @@ const Header = ({ username, onLogout }) => {
                   </span>
                 </div>
                 <button
+                  onClick={handleForgetAccount}
+                  className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="清除保存的账号信息"
+                >
+                  <UserX size={16} />
+                  <span className="hidden sm:inline">忘记账号</span>
+                </button>
+                <button
                   onClick={onLogout}
                   className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                 >
@@ -40,7 +54,7 @@ const Header = ({ username, onLogout }) => {
                 </button>
               </>
             )}
-            
+
             {/* GitHub链接 */}
             <a
               href="https://github.com/linuxdo-community"
@@ -54,7 +68,7 @@ const Header = ({ username, onLogout }) => {
           </div>
         </div>
       </div>
-      
+
       {/* 状态栏 */}
       {username && (
         <div className="bg-linuxdo-50 border-t">

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, ArrowRight, AlertCircle, ExternalLink, Lock } from 'lucide-react';
 
 const LoginForm = ({ onLogin, error }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const validateUsername = (name) => {
     // Linux用户名规则验证
@@ -16,6 +17,24 @@ const LoginForm = ({ onLogin, error }) => {
     // 密码规则：至少6位，包含字母和数字
     return pass.length >= 6 && /[a-zA-Z]/.test(pass) && /[0-9]/.test(pass);
   };
+
+  // 组件加载时读取保存的账号信息
+  useEffect(() => {
+    const savedCredentials = localStorage.getItem('linuxdo-credentials');
+    if (savedCredentials) {
+      try {
+        const { username: savedUsername, password: savedPassword, rememberMe: savedRememberMe } = JSON.parse(savedCredentials);
+        if (savedRememberMe) {
+          setUsername(savedUsername || '');
+          setPassword(savedPassword || '');
+          setRememberMe(true);
+        }
+      } catch (error) {
+        console.error('读取保存的账号信息失败:', error);
+        localStorage.removeItem('linuxdo-credentials');
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,6 +53,19 @@ const LoginForm = ({ onLogin, error }) => {
 
     setIsLoading(true);
     try {
+      // 保存账号信息（如果选择了记住我）
+      if (rememberMe) {
+        const credentials = {
+          username,
+          password,
+          rememberMe: true
+        };
+        localStorage.setItem('linuxdo-credentials', JSON.stringify(credentials));
+      } else {
+        // 如果没有选择记住我，清除保存的信息
+        localStorage.removeItem('linuxdo-credentials');
+      }
+
       await onLogin(username, password);
     } finally {
       setIsLoading(false);
@@ -154,6 +186,20 @@ const LoginForm = ({ onLogin, error }) => {
               密码格式不正确
             </div>
           )}
+        </div>
+
+        {/* 记住我选项 */}
+        <div className="flex items-center">
+          <input
+            id="remember-me"
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+            className="h-4 w-4 text-linuxdo-600 focus:ring-linuxdo-500 border-gray-300 rounded"
+          />
+          <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+            记住账号密码
+          </label>
         </div>
 
         {/* 服务器错误提示 */}

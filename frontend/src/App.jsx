@@ -22,6 +22,7 @@ function App() {
   const [chatMessages, setChatMessages] = useState([]);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('terminal');
+  const [isAutoLogging, setIsAutoLogging] = useState(false);
 
   useEffect(() => {
     // 检查URL参数，看是否是从LinuxDo登录回调回来的
@@ -36,6 +37,26 @@ function App() {
       setUsername(usernameFromUrl);
       handleAutoLogin(usernameFromUrl);
       return;
+    }
+
+    // 检查是否有保存的登录信息
+    const savedCredentials = localStorage.getItem('linuxdo-credentials');
+    if (savedCredentials) {
+      try {
+        const { username: savedUsername, password: savedPassword, rememberMe } = JSON.parse(savedCredentials);
+        if (rememberMe && savedUsername && savedPassword) {
+          setIsAutoLogging(true);
+          setUsername(savedUsername);
+          // 延迟一下再自动登录，让用户看到正在自动登录的提示
+          setTimeout(() => {
+            handleLogin(savedUsername, savedPassword);
+          }, 1000);
+          return;
+        }
+      } catch (error) {
+        console.error('读取保存的登录信息失败:', error);
+        localStorage.removeItem('linuxdo-credentials');
+      }
     }
 
     // 初始化Socket连接
@@ -100,6 +121,7 @@ function App() {
 
     setUsername(inputUsername);
     setError('');
+    setIsAutoLogging(false); // 清除自动登录状态
     socket.connect();
     socket.emit('join', { username: inputUsername, password: inputPassword });
 
@@ -194,9 +216,11 @@ function App() {
     setUsername('');
     setIsConnected(false);
     setIsCreatingContainer(false);
+    setIsAutoLogging(false);
     setProgress({ progress: 0, message: '' });
     setChatMessages([]);
     setError('');
+    // 注意：不清除localStorage，保留记住的账号信息
   };
 
   // 测试模式 - 只显示测试终端
@@ -217,6 +241,43 @@ function App() {
   }
 
   if (!isConnected && !isCreatingContainer) {
+    // 自动登录状态
+    if (isAutoLogging) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-linuxdo-50 to-linuxdo-100">
+          <Header />
+          <div className="container mx-auto px-4 py-8">
+            <div className="max-w-md mx-auto">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-linuxdo-500 text-white rounded-full mb-4">
+                  <TerminalIcon size={32} />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  自动登录中...
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  正在使用保存的账号信息登录
+                </p>
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-linuxdo-500"></div>
+                  <span className="text-sm text-gray-500">用户: {username}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsAutoLogging(false);
+                    localStorage.removeItem('linuxdo-credentials');
+                  }}
+                  className="mt-4 text-sm text-gray-500 hover:text-gray-700 underline"
+                >
+                  取消自动登录
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-linuxdo-50 to-linuxdo-100">
         <Header />
