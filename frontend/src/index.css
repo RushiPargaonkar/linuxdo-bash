@@ -59,6 +59,93 @@
     @apply h-80 lg:h-[420px] overflow-y-auto p-4 space-y-2 bg-white dark:bg-gray-800;
   }
 
+  /* 聊天室滚动条样式 - 蓝色主题 */
+  .chat-messages::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .chat-messages::-webkit-scrollbar-track {
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 3px;
+  }
+
+  .chat-messages::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.4);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  .chat-messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.6);
+  }
+
+  /* 暗色模式下的聊天室滚动条 */
+  .dark .chat-messages::-webkit-scrollbar-track {
+    background: rgba(59, 130, 246, 0.2);
+  }
+
+  .dark .chat-messages::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.5);
+  }
+
+  .dark .chat-messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.7);
+  }
+
+  /* 终端滚动条样式 */
+  .terminal-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .terminal-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 255, 0, 0.1);
+    border-radius: 4px;
+  }
+
+  .terminal-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 0, 0.4);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+  }
+
+  .terminal-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 0, 0.6);
+  }
+
+  /* 全局滚动条美化 - 适用于所有元素 */
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  /* 暗色模式下的全局滚动条 */
+  .dark *::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .dark *::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  .dark *::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+  }
+
   .chat-message {
     @apply flex flex-col;
   }

@@ -32,6 +32,15 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
     loadUserAvatars();
   }, [otherUsers]);
 
+  // 当终端输出更新时自动滚动到底部
+  useEffect(() => {
+    Object.keys(terminalOutputs).forEach(username => {
+      if (otherUsers.includes(username)) {
+        scrollToBottom(username);
+      }
+    });
+  }, [terminalOutputs, otherUsers]);
+
   useEffect(() => {
     if (!socket) return;
 
@@ -149,7 +158,7 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
       </div>
 
       <div className="p-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {otherUsers.map((username) => (
             <div key={username} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
               {/* 用户头部 */}
@@ -185,7 +194,7 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
               {/* 终端内容 */}
               <div
                 ref={(el) => terminalRefs.current[username] = el}
-                className="bg-black text-green-400 p-3 h-64 overflow-y-auto"
+                className="bg-black text-green-400 p-3 h-64 overflow-y-auto terminal-scrollbar"
               >
                 <div className="font-mono text-xs whitespace-pre-wrap">
                   {formatTerminalOutput(terminalOutputs[username]) || (
