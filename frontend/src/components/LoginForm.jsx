@@ -189,17 +189,38 @@ const LoginForm = ({ onLogin, error }) => {
         </div>
 
         {/* 记住我选项 */}
-        <div className="flex items-center">
-          <input
-            id="remember-me"
-            type="checkbox"
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
-            className="h-4 w-4 text-linuxdo-600 focus:ring-linuxdo-500 border-gray-300 rounded"
-          />
-          <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-            记住账号密码
-          </label>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <input
+              id="remember-me"
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="h-4 w-4 text-linuxdo-600 focus:ring-linuxdo-500 border-gray-300 rounded"
+            />
+            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+              记住账号密码
+            </label>
+          </div>
+
+          {/* 清除保存的账号信息 */}
+          {localStorage.getItem('linuxdo-credentials') && (
+            <button
+              type="button"
+              onClick={() => {
+                if (confirm('确定要清除保存的账号信息吗？')) {
+                  localStorage.removeItem('linuxdo-credentials');
+                  setUsername('');
+                  setPassword('');
+                  setRememberMe(false);
+                  alert('账号信息已清除');
+                }
+              }}
+              className="text-xs text-gray-500 hover:text-gray-700 underline"
+            >
+              清除保存的账号
+            </button>
+          )}
         </div>
 
         {/* 服务器错误提示 */}
