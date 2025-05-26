@@ -379,6 +379,9 @@ function App() {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* 其他用户终端展示区域 - 固定和bash终端相同的宽度(3/4) */}
             <div className="lg:col-span-3">
+              {/* 调试信息 */}
+              {console.log('App.jsx - activeUsers:', activeUsers)}
+              {console.log('App.jsx - username:', username)}
               <OtherUsersTerminals
                 socket={socket}
                 currentUsername={username}

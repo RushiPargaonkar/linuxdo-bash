@@ -8,6 +8,11 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
   // 过滤掉当前用户，只显示其他用户
   const otherUsers = activeUsers.filter(user => user !== currentUsername);
 
+  // 调试信息
+  console.log('OtherUsersTerminals - activeUsers:', activeUsers);
+  console.log('OtherUsersTerminals - currentUsername:', currentUsername);
+  console.log('OtherUsersTerminals - otherUsers:', otherUsers);
+
   useEffect(() => {
     if (!socket) return;
 
