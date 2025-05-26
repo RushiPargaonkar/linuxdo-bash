@@ -107,6 +107,45 @@ const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
     setShowEmojiPicker(false);
   };
 
+  const handleKeyDown = (e) => {
+    // Shift+Enter 换行
+    if (e.key === 'Enter' && e.shiftKey) {
+      e.preventDefault();
+      const cursorPosition = e.target.selectionStart;
+      const textBefore = inputMessage.substring(0, cursorPosition);
+      const textAfter = inputMessage.substring(cursorPosition);
+      setInputMessage(textBefore + '\n' + textAfter);
+
+      // 设置光标位置到换行后的位置
+      setTimeout(() => {
+        e.target.selectionStart = e.target.selectionEnd = cursorPosition + 1;
+        adjustTextareaHeight(e.target);
+      }, 0);
+      return;
+    }
+
+    // Enter 发送消息
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+      return;
+    }
+  };
+
+  // 自动调整textarea高度
+  const adjustTextareaHeight = (textarea) => {
+    textarea.style.height = 'auto';
+    const scrollHeight = textarea.scrollHeight;
+    const maxHeight = 120; // 最大高度120px
+    textarea.style.height = Math.min(scrollHeight, maxHeight) + 'px';
+  };
+
+  // 监听输入变化，自动调整高度
+  const handleInputChange = (e) => {
+    setInputMessage(e.target.value);
+    adjustTextareaHeight(e.target);
+  };
+
   const handleEmojiSelect = (emoji) => {
     setInputMessage(prev => prev + emoji);
     setShowEmojiPicker(false);
@@ -212,7 +251,9 @@ const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
                     )}
 
                     <div className={`message-bubble ${isOwn ? 'own' : 'other'}`}>
-                      {message.message}
+                      <pre className="whitespace-pre-wrap font-sans text-sm m-0">
+                        {message.message}
+                      </pre>
                     </div>
 
                     <div className="message-meta">
@@ -231,14 +272,20 @@ const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
       <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 relative">
         <form onSubmit={handleSubmit} className="flex space-x-2">
           <div className="flex-1 relative">
-            <input
+            <textarea
               ref={inputRef}
-              type="text"
               value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
               placeholder="输入消息..."
-              className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-linuxdo-500 focus:border-transparent text-sm"
+              className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-linuxdo-500 focus:border-transparent text-sm resize-none"
               maxLength={500}
+              rows={1}
+              style={{
+                minHeight: '38px',
+                maxHeight: '120px',
+                overflowY: inputMessage.includes('\n') ? 'auto' : 'hidden'
+              }}
             />
             {/* 表情按钮 */}
             <button
@@ -285,9 +332,9 @@ const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
           </div>
         )}
 
-        {/* 字符计数 */}
+        {/* 字符计数和提示 */}
         <div className="flex justify-between items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
-          <span>按 Enter 发送消息</span>
+          <span>Enter 发送 • Shift+Enter 换行</span>
           <span>{inputMessage.length}/500</span>
         </div>
       </div>
