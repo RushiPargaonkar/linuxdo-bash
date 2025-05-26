@@ -5,6 +5,15 @@ class ChatService {
   constructor() {
     this.dbPath = path.join(__dirname, '../database/chat.db');
     this.db = null;
+    // 防刷屏机制
+    this.userMessageHistory = new Map(); // 用户消息历史
+    this.rateLimits = {
+      maxMessagesPerMinute: 10,    // 每分钟最多10条消息
+      maxMessagesPerHour: 100,     // 每小时最多100条消息
+      minMessageInterval: 1000,    // 最小消息间隔1秒
+      maxMessageLength: 500,       // 最大消息长度500字符
+      duplicateCheckCount: 5       // 检查最近5条消息是否重复
+    };
   }
 
   /**
@@ -41,13 +50,93 @@ class ChatService {
           if (err) {
             console.error('创建消息表失败:', err);
             reject(err);
-          } else {
-            console.log('消息表初始化完成');
-            resolve();
+            return;
           }
+
+          // 创建点赞表
+          this.db.run(`
+            CREATE TABLE IF NOT EXISTS likes (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              from_user TEXT NOT NULL,
+              to_user TEXT NOT NULL,
+              like_date TEXT NOT NULL DEFAULT (date('now')),
+              timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+              created_at INTEGER DEFAULT (strftime('%s', 'now')),
+              UNIQUE(from_user, to_user, like_date)
+            )
+          `, (err) => {
+            if (err) {
+              console.error('创建点赞表失败:', err);
+              reject(err);
+            } else {
+              console.log('消息表和点赞表初始化完成');
+              resolve();
+            }
+          });
         });
       });
     });
+  }
+
+  /**
+   * 检查用户是否被限制发言
+   */
+  checkRateLimit(username, message) {
+    const now = Date.now();
+
+    // 检查消息长度
+    if (message.length > this.rateLimits.maxMessageLength) {
+      return { allowed: false, reason: `消息长度不能超过${this.rateLimits.maxMessageLength}字符` };
+    }
+
+    // 检查消息是否为空或只有空白字符
+    if (!message.trim()) {
+      return { allowed: false, reason: '消息不能为空' };
+    }
+
+    // 获取用户历史记录
+    if (!this.userMessageHistory.has(username)) {
+      this.userMessageHistory.set(username, []);
+    }
+
+    const userHistory = this.userMessageHistory.get(username);
+
+    // 清理过期记录（超过1小时的）
+    const oneHourAgo = now - 60 * 60 * 1000;
+    const validHistory = userHistory.filter(record => record.timestamp > oneHourAgo);
+
+    // 检查最小消息间隔
+    if (validHistory.length > 0) {
+      const lastMessage = validHistory[validHistory.length - 1];
+      if (now - lastMessage.timestamp < this.rateLimits.minMessageInterval) {
+        return { allowed: false, reason: '发送消息过于频繁，请稍后再试' };
+      }
+    }
+
+    // 检查每分钟消息数量
+    const oneMinuteAgo = now - 60 * 1000;
+    const messagesInLastMinute = validHistory.filter(record => record.timestamp > oneMinuteAgo);
+    if (messagesInLastMinute.length >= this.rateLimits.maxMessagesPerMinute) {
+      return { allowed: false, reason: `每分钟最多发送${this.rateLimits.maxMessagesPerMinute}条消息` };
+    }
+
+    // 检查每小时消息数量
+    if (validHistory.length >= this.rateLimits.maxMessagesPerHour) {
+      return { allowed: false, reason: `每小时最多发送${this.rateLimits.maxMessagesPerHour}条消息` };
+    }
+
+    // 检查重复消息
+    const recentMessages = validHistory.slice(-this.rateLimits.duplicateCheckCount);
+    const duplicateCount = recentMessages.filter(record => record.message === message).length;
+    if (duplicateCount >= 2) {
+      return { allowed: false, reason: '请不要重复发送相同的消息' };
+    }
+
+    // 更新用户历史记录
+    validHistory.push({ message, timestamp: now });
+    this.userMessageHistory.set(username, validHistory);
+
+    return { allowed: true };
   }
 
   /**
@@ -128,6 +217,116 @@ class ChatService {
             createdAt: row.created_at * 1000
           }));
           resolve(messages);
+        }
+      });
+    });
+  }
+
+  /**
+   * 给用户点赞
+   */
+  likeUser(fromUser, toUser) {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        reject(new Error('数据库未初始化'));
+        return;
+      }
+
+      if (fromUser === toUser) {
+        reject(new Error('不能给自己点赞'));
+        return;
+      }
+
+      // 检查今天是否已经给这个用户点过赞
+      this.db.get(`
+        SELECT id FROM likes
+        WHERE from_user = ? AND to_user = ? AND like_date = date('now')
+      `, [fromUser, toUser], (err, row) => {
+        if (err) {
+          console.error('检查点赞记录失败:', err);
+          reject(err);
+          return;
+        }
+
+        if (row) {
+          reject(new Error('今天已经给这个用户点过赞了'));
+          return;
+        }
+
+        // 插入点赞记录
+        const stmt = this.db.prepare(`
+          INSERT INTO likes (from_user, to_user, like_date, timestamp, created_at)
+          VALUES (?, ?, date('now'), datetime('now'), strftime('%s', 'now'))
+        `);
+
+        stmt.run([fromUser, toUser], function(err) {
+          if (err) {
+            console.error('保存点赞记录失败:', err);
+            reject(err);
+          } else {
+            resolve({
+              id: this.lastID,
+              fromUser,
+              toUser,
+              timestamp: new Date().toISOString()
+            });
+          }
+          stmt.finalize();
+        });
+      });
+    });
+  }
+
+  /**
+   * 获取用户今日收到的点赞数
+   */
+  getUserLikesCount(username) {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        reject(new Error('数据库未初始化'));
+        return;
+      }
+
+      this.db.get(`
+        SELECT COUNT(*) as count
+        FROM likes
+        WHERE to_user = ? AND like_date = date('now')
+      `, [username], (err, row) => {
+        if (err) {
+          console.error('获取点赞数失败:', err);
+          reject(err);
+        } else {
+          resolve(row.count || 0);
+        }
+      });
+    });
+  }
+
+  /**
+   * 获取所有用户的今日点赞数
+   */
+  getAllUsersLikesCount() {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        reject(new Error('数据库未初始化'));
+        return;
+      }
+
+      this.db.all(`
+        SELECT to_user as username, COUNT(*) as likes
+        FROM likes
+        WHERE like_date = date('now')
+        GROUP BY to_user
+      `, [], (err, rows) => {
+        if (err) {
+          console.error('获取所有用户点赞数失败:', err);
+          reject(err);
+        } else {
+          const likesMap = {};
+          rows.forEach(row => {
+            likesMap[row.username] = row.likes;
+          });
+          resolve(likesMap);
         }
       });
     });

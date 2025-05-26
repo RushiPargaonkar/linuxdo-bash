@@ -7,6 +7,7 @@ import UserList from './components/UserList';
 import ProgressModal from './components/ProgressModal';
 import Header from './components/Header';
 import TestTerminal from './components/TestTerminal';
+import OtherUsersTerminals from './components/OtherUsersTerminals';
 import { Terminal as TerminalIcon, MessageCircle, Users } from 'lucide-react';
 
 function App() {
@@ -88,10 +89,17 @@ function App() {
 
     newSocket.on('user-joined', (data) => {
       // 可以添加用户加入通知
+      console.log('用户加入:', data.username);
     });
 
     newSocket.on('user-left', (data) => {
       // 可以添加用户离开通知
+      console.log('用户离开:', data.username);
+    });
+
+    newSocket.on('user-list-updated', (userList) => {
+      console.log('用户列表更新:', userList);
+      setActiveUsers(userList);
     });
 
     newSocket.on('chat-message', (message) => {
@@ -119,6 +127,9 @@ function App() {
 
     // 获取聊天历史
     socket.emit('get-chat-history');
+
+    // 获取用户列表
+    socket.emit('get-user-list');
   };
 
   const handleAutoLogin = (inputUsername) => {
@@ -142,6 +153,7 @@ function App() {
       console.log('Socket连接成功');
       newSocket.emit('join', { username: inputUsername });
       newSocket.emit('get-chat-history');
+      newSocket.emit('get-user-list');
     });
 
     // 设置其他socket事件监听器
@@ -177,11 +189,16 @@ function App() {
     });
 
     socketInstance.on('user-joined', (data) => {
-      setActiveUsers(prev => [...prev.filter(u => u !== data.username), data.username]);
+      console.log('用户加入 (setupSocketListeners):', data.username);
     });
 
     socketInstance.on('user-left', (data) => {
-      setActiveUsers(prev => prev.filter(u => u !== data.username));
+      console.log('用户离开 (setupSocketListeners):', data.username);
+    });
+
+    socketInstance.on('user-list-updated', (userList) => {
+      console.log('用户列表更新 (setupSocketListeners):', userList);
+      setActiveUsers(userList);
     });
 
     socketInstance.on('container-reset', (data) => {
@@ -350,6 +367,15 @@ function App() {
               <UserList users={activeUsers} currentUsername={username} socket={socket} />
             </div>
           </div>
+        </div>
+
+        {/* 其他用户终端展示区域 */}
+        <div className="mt-8">
+          <OtherUsersTerminals
+            socket={socket}
+            currentUsername={username}
+            activeUsers={activeUsers}
+          />
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
+const { io: ioClient } = require('socket.io-client');
 const pty = require('node-pty');
 const path = require('path');
 const cors = require('cors');
@@ -20,6 +21,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // 存储终端会话
 const terminals = {};
+const userTerminals = {}; // 存储用户名到终端的映射
+
+// 连接到主API服务器，用于广播终端输出
+const mainServerSocket = ioClient('http://localhost:3001');
+
+mainServerSocket.on('connect', () => {
+  console.log('WebSSH服务器已连接到主API服务器');
+});
+
+mainServerSocket.on('disconnect', () => {
+  console.log('WebSSH服务器与主API服务器断开连接');
+});
 
 // 提供简单的webssh页面
 app.get('/ssh', (req, res) => {
@@ -119,16 +132,28 @@ io.on('connection', (socket) => {
       });
 
       terminals[socket.id] = terminal;
+      userTerminals[username] = { terminal, socketId: socket.id };
+      socket.username = username; // 保存用户名到socket
 
       // 发送终端输出到客户端
       terminal.on('data', (data) => {
+        // 发送给当前用户
         socket.emit('terminal-output', data);
+
+        // 广播给其他用户观看（通过主API服务器）
+        if (mainServerSocket.connected) {
+          mainServerSocket.emit('broadcast-terminal-output', {
+            username: username,
+            data: data
+          });
+        }
       });
 
       // 处理终端退出
       terminal.on('exit', () => {
         socket.emit('terminal-exit');
         delete terminals[socket.id];
+        delete userTerminals[username];
       });
 
       // 发送欢迎消息
@@ -165,6 +190,11 @@ io.on('connection', (socket) => {
     if (terminal) {
       terminal.kill();
       delete terminals[socket.id];
+    }
+
+    // 清理用户终端映射
+    if (socket.username) {
+      delete userTerminals[socket.username];
     }
   });
 });

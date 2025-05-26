@@ -81,6 +81,20 @@ const terminalService = new TerminalService(containerManager);
 // 初始化数据库
 chatService.initDatabase();
 
+// 在线用户管理
+const activeUsers = new Set();
+
+// 获取在线用户列表
+function getActiveUsersList() {
+  return Array.from(activeUsers);
+}
+
+// 广播用户列表更新
+function broadcastUserList() {
+  const userList = getActiveUsersList();
+  io.emit('user-list-updated', userList);
+}
+
 // API路由
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -181,8 +195,14 @@ io.on('connection', (socket) => {
         message: result.message
       });
 
+      // 添加到在线用户列表
+      activeUsers.add(username);
+
       // 通知其他用户
       socket.broadcast.emit('user-joined', { username });
+
+      // 广播更新后的用户列表
+      broadcastUserList();
 
     } catch (error) {
       console.error('用户加入失败:', error);
@@ -207,6 +227,13 @@ io.on('connection', (socket) => {
   // 聊天消息
   socket.on('chat-message', async (data) => {
     try {
+      // 检查防刷屏限制
+      const rateLimitCheck = chatService.checkRateLimit(socket.username, data.message);
+      if (!rateLimitCheck.allowed) {
+        socket.emit('error', { message: rateLimitCheck.reason });
+        return;
+      }
+
       const message = await chatService.saveMessage(socket.username, data.message);
       io.emit('chat-message', message);
     } catch (error) {
@@ -222,6 +249,61 @@ io.on('connection', (socket) => {
     } catch (error) {
       socket.emit('error', { message: '获取聊天记录失败' });
     }
+  });
+
+  // 点赞用户
+  socket.on('like-user', async (data) => {
+    try {
+      const { targetUsername } = data;
+
+      if (!socket.username) {
+        socket.emit('error', { message: '请先登录' });
+        return;
+      }
+
+      const likeRecord = await chatService.likeUser(socket.username, targetUsername);
+
+      // 通知所有用户有新的点赞
+      io.emit('user-liked', {
+        fromUser: socket.username,
+        toUser: targetUsername,
+        timestamp: likeRecord.timestamp
+      });
+
+      // 获取更新后的点赞数
+      const likesCount = await chatService.getUserLikesCount(targetUsername);
+
+      // 通知所有用户更新点赞数
+      io.emit('likes-updated', {
+        username: targetUsername,
+        likes: likesCount
+      });
+
+    } catch (error) {
+      socket.emit('error', { message: error.message });
+    }
+  });
+
+  // 获取所有用户点赞数
+  socket.on('get-all-likes', async () => {
+    try {
+      const allLikes = await chatService.getAllUsersLikesCount();
+      socket.emit('all-likes', allLikes);
+    } catch (error) {
+      socket.emit('error', { message: '获取点赞数据失败' });
+    }
+  });
+
+  // 处理来自WebSSH服务器的终端输出广播
+  socket.on('broadcast-terminal-output', (data) => {
+    // 广播给所有其他用户（除了发送者）
+    socket.broadcast.emit('user-terminal-output', data);
+  });
+
+  // 获取在线用户列表
+  socket.on('get-user-list', () => {
+    const userList = getActiveUsersList();
+    socket.emit('user-list-updated', userList);
   });
 
   // 重置容器
@@ -311,14 +393,21 @@ io.on('connection', (socket) => {
 
   // 断开连接
   socket.on('disconnect', () => {
-    console.log('用户断开连接:', socket.id);
+    console.log('用户断开连接:', socket.id, socket.username);
 
     if (socket.terminalId) {
       terminalService.closeTerminal(socket.terminalId);
     }
 
     if (socket.username) {
+      // 从在线用户列表中移除
+      activeUsers.delete(socket.username);
+
+      // 通知其他用户
       socket.broadcast.emit('user-left', { username: socket.username });
+
+      // 广播更新后的用户列表
+      broadcastUserList();
     }
   });
 });
