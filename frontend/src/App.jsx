@@ -429,10 +429,10 @@ function App() {
         </div>
       </div>
 
-      {/* 下半部分：其他用户终端展示区域 - 使用黄金比例 */}
+      {/* 下半部分：其他用户终端展示区域 - 使用更宽的布局 */}
       <div className="container mx-auto px-4 pb-6">
-        {/* 其他用户终端展示区域 - 使用和bash终端相同的62%宽度 */}
-        <div className="lg:w-[62%]">
+        {/* 其他用户终端展示区域 - 使用更宽的布局，几乎全宽 */}
+        <div className="w-full">
           {/* 调试信息 */}
           {console.log('App.jsx - activeUsers:', activeUsers)}
           {console.log('App.jsx - username:', username)}
