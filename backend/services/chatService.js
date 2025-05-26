@@ -154,15 +154,17 @@ class ChatService {
         VALUES (?, ?, datetime('now'), strftime('%s', 'now'))
       `);
 
+      const self = this; // 保存this引用
       stmt.run([username, message], function(err) {
         if (err) {
           console.error('保存消息失败:', err);
           reject(err);
         } else {
           const insertId = this.lastID;
+          console.log('消息插入成功，ID:', insertId);
 
           // 获取刚插入的消息
-          this.db.get(`
+          self.db.get(`
             SELECT id, username, message, timestamp, created_at
             FROM messages
             WHERE id = ?
@@ -171,9 +173,10 @@ class ChatService {
               console.error('查询插入的消息失败:', err);
               reject(err);
             } else if (!row) {
-              console.error('未找到插入的消息');
+              console.error('未找到插入的消息，ID:', insertId);
               reject(new Error('未找到插入的消息'));
             } else {
+              console.log('查询到插入的消息:', row);
               resolve({
                 id: row.id,
                 username: row.username,
@@ -185,7 +188,7 @@ class ChatService {
           });
         }
         stmt.finalize();
-      }.bind(this));
+      });
     });
   }
 
