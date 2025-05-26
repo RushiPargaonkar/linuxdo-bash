@@ -24,6 +24,20 @@ function App() {
   const [activeTab, setActiveTab] = useState('terminal');
 
   useEffect(() => {
+    // 检查URL参数，看是否是从LinuxDo登录回调回来的
+    const urlParams = new URLSearchParams(window.location.search);
+    const usernameFromUrl = urlParams.get('username');
+    const loginSuccess = urlParams.get('login');
+
+    if (usernameFromUrl && loginSuccess === 'success') {
+      // 清除URL参数
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // 自动登录
+      setUsername(usernameFromUrl);
+      handleAutoLogin(usernameFromUrl);
+      return;
+    }
+
     // 初始化Socket连接
     const newSocket = io(window.location.origin, {
       autoConnect: false
@@ -91,6 +105,64 @@ function App() {
 
     // 获取聊天历史
     socket.emit('get-chat-history');
+  };
+
+  const handleAutoLogin = (inputUsername) => {
+    // 为LinuxDo登录创建新的socket连接
+    const newSocket = io(window.location.origin, {
+      autoConnect: true
+    });
+
+    setSocket(newSocket);
+    setUsername(inputUsername);
+    setError('');
+
+    newSocket.on('connect', () => {
+      console.log('Socket连接成功');
+      newSocket.emit('join', { username: inputUsername });
+      newSocket.emit('get-chat-history');
+    });
+
+    // 设置其他socket事件监听器
+    setupSocketListeners(newSocket);
+  };
+
+  const setupSocketListeners = (socketInstance) => {
+    socketInstance.on('container-creating', () => {
+      setIsCreatingContainer(true);
+      setProgress({ progress: 0, message: '正在创建容器...' });
+    });
+
+    socketInstance.on('container-progress', (data) => {
+      setProgress(data);
+    });
+
+    socketInstance.on('container-ready', () => {
+      setIsConnected(true);
+      setIsCreatingContainer(false);
+      setProgress({ progress: 100, message: '容器就绪!' });
+    });
+
+    socketInstance.on('chat-message', (message) => {
+      setChatMessages(prev => [...prev, message]);
+    });
+
+    socketInstance.on('chat-history', (messages) => {
+      setChatMessages(messages);
+    });
+
+    socketInstance.on('user-joined', (data) => {
+      setActiveUsers(prev => [...prev.filter(u => u !== data.username), data.username]);
+    });
+
+    socketInstance.on('user-left', (data) => {
+      setActiveUsers(prev => prev.filter(u => u !== data.username));
+    });
+
+    socketInstance.on('error', (data) => {
+      setError(data.message);
+      setIsCreatingContainer(false);
+    });
   };
 
   const handleSendMessage = (message) => {

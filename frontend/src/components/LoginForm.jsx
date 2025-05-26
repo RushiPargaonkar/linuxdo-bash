@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, ArrowRight, AlertCircle } from 'lucide-react';
+import { User, ArrowRight, AlertCircle, ExternalLink } from 'lucide-react';
 
 const LoginForm = ({ onLogin, error }) => {
   const [username, setUsername] = useState('');
@@ -13,7 +13,7 @@ const LoginForm = ({ onLogin, error }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!username.trim()) {
       return;
     }
@@ -30,10 +30,34 @@ const LoginForm = ({ onLogin, error }) => {
     }
   };
 
+  const handleLinuxDoLogin = () => {
+    window.location.href = 'http://localhost:3001/auth/linuxdo';
+  };
+
   const isValid = username && validateUsername(username);
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
+      {/* LinuxDo登录选项 */}
+      <div className="mb-6">
+        <button
+          onClick={handleLinuxDoLogin}
+          className="w-full flex items-center justify-center px-4 py-3 border border-linuxdo-300 rounded-lg text-sm font-medium text-linuxdo-700 bg-linuxdo-50 hover:bg-linuxdo-100 transition-colors"
+        >
+          <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+          使用 LinuxDo 账号登录
+          <ExternalLink size={16} className="ml-2" />
+        </button>
+
+        <div className="mt-4 flex items-center">
+          <div className="flex-1 border-t border-gray-300"></div>
+          <div className="px-3 text-sm text-gray-500">或</div>
+          <div className="flex-1 border-t border-gray-300"></div>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
@@ -59,7 +83,7 @@ const LoginForm = ({ onLogin, error }) => {
               autoFocus
             />
           </div>
-          
+
           {/* 用户名规则提示 */}
           <div className="mt-2 text-xs text-gray-500">
             <p>用户名规则：</p>
