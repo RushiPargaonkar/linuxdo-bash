@@ -31,77 +31,62 @@ app.get('/ssh', (req, res) => {
     <head>
         <title>WebSSH Terminal</title>
         <script src="/socket.io/socket.io.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/xterm@4.19.0/lib/xterm.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.19.0/css/xterm.css" />
         <style>
             body {
                 margin: 0;
                 padding: 0;
                 background: #000;
-                font-family: 'Courier New', monospace;
-                color: #fff;
+                font-family: monospace;
             }
             #terminal {
                 width: 100vw;
                 height: 100vh;
-                padding: 10px;
-                box-sizing: border-box;
-                white-space: pre-wrap;
-                overflow-y: auto;
-                font-size: 14px;
-                line-height: 1.2;
-            }
-            #input {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                background: #000;
-                border: none;
-                color: #fff;
-                padding: 10px;
-                font-family: 'Courier New', monospace;
-                font-size: 14px;
-                outline: none;
             }
         </style>
     </head>
     <body>
-        <div id="terminal">正在连接到容器...</div>
-        <input id="input" type="text" placeholder="输入命令..." />
+        <div id="terminal"></div>
         <script>
             const socket = io();
-            const terminal = document.getElementById('terminal');
-            const input = document.getElementById('input');
+            const terminal = new Terminal({
+                fontSize: 14,
+                fontFamily: 'monospace',
+                theme: {
+                    background: '#000000',
+                    foreground: '#ffffff'
+                },
+                cursorBlink: true,
+                convertEol: true,
+                scrollback: 1000,
+                tabStopWidth: 4
+            });
+
+            terminal.open(document.getElementById('terminal'));
 
             // 连接到容器
             socket.emit('create-terminal', { username: '${username}' });
 
             // 处理终端输出
             socket.on('terminal-output', (data) => {
-                terminal.textContent += data;
-                terminal.scrollTop = terminal.scrollHeight;
+                terminal.write(data);
             });
 
             // 处理用户输入
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    const command = input.value + '\\n';
-                    socket.emit('terminal-input', command);
-                    input.value = '';
-                } else if (e.key === 'Backspace') {
-                    // 发送退格键
-                    socket.emit('terminal-input', '\\b');
-                }
+            terminal.onData((data) => {
+                socket.emit('terminal-input', data);
             });
 
-            input.addEventListener('input', (e) => {
-                const lastChar = e.data;
-                if (lastChar && lastChar !== '\\n') {
-                    socket.emit('terminal-input', lastChar);
-                }
+            // 处理终端大小调整
+            terminal.onResize((size) => {
+                socket.emit('terminal-resize', size);
             });
 
-            // 聚焦输入框
-            input.focus();
+            // 初始化大小
+            setTimeout(() => {
+                terminal.fit();
+            }, 100);
         </script>
     </body>
     </html>
@@ -122,11 +107,15 @@ io.on('connection', (socket) => {
       const terminal = pty.spawn('docker', [
         'exec', '-it', containerName, '/bin/bash'
       ], {
-        name: 'xterm-color',
+        name: 'xterm-256color',
         cols: 80,
         rows: 24,
         cwd: process.env.HOME,
-        env: process.env
+        env: {
+          ...process.env,
+          TERM: 'xterm-256color',
+          COLORTERM: 'truecolor'
+        }
       });
 
       terminals[socket.id] = terminal;
