@@ -55,8 +55,21 @@ const Terminal = ({ socket, username }) => {
     xterm.loadAddon(webLinksAddon);
 
     // 打开终端
-    xterm.open(terminalRef.current);
-    fitAddon.fit();
+    try {
+      xterm.open(terminalRef.current);
+
+      // 延迟调用fit，确保DOM完全渲染
+      setTimeout(() => {
+        try {
+          fitAddon.fit();
+        } catch (error) {
+          console.warn('Initial fit failed:', error);
+        }
+      }, 100);
+    } catch (error) {
+      console.error('Terminal open failed:', error);
+      return;
+    }
 
     // 保存引用
     xtermRef.current = xterm;
@@ -69,6 +82,7 @@ const Terminal = ({ socket, username }) => {
 
     // 监听终端输出
     socket.on('terminal-output', (data) => {
+      console.log('收到终端输出:', data);
       xterm.write(data);
     });
 
@@ -79,24 +93,35 @@ const Terminal = ({ socket, username }) => {
 
     // 监听窗口大小变化
     const handleResize = () => {
-      if (fitAddon) {
-        fitAddon.fit();
-        socket.emit('terminal-resize', {
-          cols: xterm.cols,
-          rows: xterm.rows
-        });
+      if (fitAddon && xterm) {
+        try {
+          fitAddon.fit();
+          socket.emit('terminal-resize', {
+            cols: xterm.cols,
+            rows: xterm.rows
+          });
+        } catch (error) {
+          console.warn('Terminal resize failed:', error);
+        }
       }
     };
 
     window.addEventListener('resize', handleResize);
 
-    // 初始化大小
-    setTimeout(() => {
+    // 初始化大小 - 延迟更长时间确保DOM完全渲染
+    const resizeTimer = setTimeout(() => {
       handleResize();
-    }, 100);
+    }, 300);
+
+    // 再次确保大小正确
+    const secondResizeTimer = setTimeout(() => {
+      handleResize();
+    }, 1000);
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimer);
+      clearTimeout(secondResizeTimer);
       socket.off('terminal-output');
       socket.off('terminal-exit');
       if (xterm) {
@@ -107,15 +132,20 @@ const Terminal = ({ socket, username }) => {
 
   const handleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
+    // 延迟调整大小，确保CSS动画完成
     setTimeout(() => {
-      if (fitAddonRef.current) {
-        fitAddonRef.current.fit();
-        socket.emit('terminal-resize', {
-          cols: xtermRef.current.cols,
-          rows: xtermRef.current.rows
-        });
+      if (fitAddonRef.current && xtermRef.current) {
+        try {
+          fitAddonRef.current.fit();
+          socket.emit('terminal-resize', {
+            cols: xtermRef.current.cols,
+            rows: xtermRef.current.rows
+          });
+        } catch (error) {
+          console.warn('Fullscreen resize failed:', error);
+        }
       }
-    }, 100);
+    }, 200);
   };
 
   const handleClear = () => {
@@ -166,12 +196,16 @@ const Terminal = ({ socket, username }) => {
       {/* 终端内容 */}
       <div
         ref={terminalRef}
-        className={`bg-black ${
+        className={`bg-black overflow-hidden ${
           isFullscreen
-            ? 'h-[calc(100vh-48px)]'
+            ? 'h-[calc(100vh-96px)]'
             : 'h-96 lg:h-[500px]'
         }`}
-        style={{ minHeight: '300px' }}
+        style={{
+          minHeight: '300px',
+          width: '100%',
+          position: 'relative'
+        }}
       />
 
       {/* 状态栏 */}

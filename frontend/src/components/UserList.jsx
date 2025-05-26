@@ -7,7 +7,7 @@ const UserList = ({ users, currentUsername }) => {
   const formatUptime = (uptime) => {
     const minutes = Math.floor(uptime / (1000 * 60));
     const hours = Math.floor(minutes / 60);
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes % 60}m`;
     } else {
@@ -19,14 +19,14 @@ const UserList = ({ users, currentUsername }) => {
     const now = Date.now();
     const elapsed = now - createdAt;
     const remaining = (2 * 60 * 60 * 1000) - elapsed; // 2小时 - 已用时间
-    
+
     if (remaining <= 0) {
       return '即将过期';
     }
-    
+
     const minutes = Math.floor(remaining / (1000 * 60));
     const hours = Math.floor(minutes / 60);
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes % 60}m 后过期`;
     } else {
@@ -41,22 +41,11 @@ const UserList = ({ users, currentUsername }) => {
       containerId: 'container-123',
       createdAt: Date.now() - 30 * 60 * 1000, // 30分钟前
       uptime: 30 * 60 * 1000
-    },
-    {
-      username: 'alice',
-      containerId: 'container-456',
-      createdAt: Date.now() - 45 * 60 * 1000, // 45分钟前
-      uptime: 45 * 60 * 1000
-    },
-    {
-      username: 'bob123',
-      containerId: 'container-789',
-      createdAt: Date.now() - 15 * 60 * 1000, // 15分钟前
-      uptime: 15 * 60 * 1000
     }
   ];
 
-  const displayUsers = users.length > 0 ? users : mockUsers;
+  // 只有当前用户时显示模拟数据，否则使用真实数据
+  const displayUsers = users.length > 0 ? users : (currentUsername ? mockUsers : []);
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -81,7 +70,7 @@ const UserList = ({ users, currentUsername }) => {
         ) : (
           displayUsers.map((user) => {
             const isCurrentUser = user.username === currentUsername;
-            
+
             return (
               <div key={user.username} className="p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex items-start justify-between">
@@ -92,7 +81,7 @@ const UserList = ({ users, currentUsername }) => {
                     }`}>
                       {user.username.charAt(0).toUpperCase()}
                     </div>
-                    
+
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
                         <span className="font-medium text-gray-900">
@@ -104,19 +93,19 @@ const UserList = ({ users, currentUsername }) => {
                           </span>
                         )}
                       </div>
-                      
+
                       {/* 容器信息 */}
                       <div className="flex items-center space-x-1 mt-1 text-xs text-gray-500">
                         <Container size={12} />
                         <span>{user.containerId?.substring(0, 12) || 'container-xxx'}</span>
                       </div>
-                      
+
                       {/* 运行时间 */}
                       <div className="flex items-center space-x-1 mt-1 text-xs text-gray-500">
                         <Clock size={12} />
                         <span>运行 {formatUptime(user.uptime)}</span>
                       </div>
-                      
+
                       {/* 剩余时间 */}
                       <div className="text-xs text-orange-600 mt-1">
                         {formatTimeRemaining(user.createdAt)}
@@ -130,7 +119,7 @@ const UserList = ({ users, currentUsername }) => {
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                       <span className="text-xs text-green-600">在线</span>
                     </div>
-                    
+
                     {!isCurrentUser && (
                       <button className="flex items-center space-x-1 text-xs text-gray-500 hover:text-gray-700 transition-colors">
                         <Eye size={12} />

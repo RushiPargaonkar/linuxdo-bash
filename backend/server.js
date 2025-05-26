@@ -48,11 +48,16 @@ app.get('/api/users', async (req, res) => {
 io.on('connection', (socket) => {
   console.log('用户连接:', socket.id);
 
+  // 添加错误处理
+  socket.on('error', (error) => {
+    console.error('Socket错误:', error);
+  });
+
   // 用户加入
   socket.on('join', async (data) => {
     try {
       const { username } = data;
-      
+
       // 验证用户名
       if (!containerManager.validateUsername(username)) {
         socket.emit('error', { message: '用户名格式不正确' });
@@ -61,11 +66,11 @@ io.on('connection', (socket) => {
 
       // 创建或获取容器
       const result = await containerManager.getOrCreateContainer(username);
-      
+
       if (result.isNew) {
         // 新容器，发送创建进度
         socket.emit('container-creating', { message: '正在创建容器...' });
-        
+
         // 模拟进度更新
         const progressSteps = [
           { progress: 20, message: '拉取Ubuntu镜像...' },
@@ -92,16 +97,24 @@ io.on('connection', (socket) => {
 
       // 绑定终端事件
       terminal.onData((data) => {
-        socket.emit('terminal-output', data);
-        // 广播给其他用户（只读）
-        socket.broadcast.emit('user-terminal-output', {
-          username,
-          data
-        });
+        try {
+          socket.emit('terminal-output', data);
+          // 广播给其他用户（只读）
+          socket.broadcast.emit('user-terminal-output', {
+            username,
+            data
+          });
+        } catch (error) {
+          console.error('发送终端输出失败:', error);
+        }
       });
 
       terminal.onExit(() => {
-        socket.emit('terminal-exit');
+        try {
+          socket.emit('terminal-exit');
+        } catch (error) {
+          console.error('发送终端退出事件失败:', error);
+        }
       });
 
       socket.emit('container-ready', {
@@ -155,7 +168,7 @@ io.on('connection', (socket) => {
   // 断开连接
   socket.on('disconnect', () => {
     console.log('用户断开连接:', socket.id);
-    
+
     if (socket.terminalId) {
       terminalService.closeTerminal(socket.terminalId);
     }
