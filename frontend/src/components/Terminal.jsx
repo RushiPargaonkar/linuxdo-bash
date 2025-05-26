@@ -2,13 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Terminal as XTerm } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
-import { Maximize2, Minimize2, RotateCcw } from 'lucide-react';
+import { Maximize2, Minimize2, RotateCcw, Copy, Clipboard } from 'lucide-react';
 
 const Terminal = ({ socket, username }) => {
   const terminalRef = useRef(null);
   const xtermRef = useRef(null);
   const fitAddonRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showCopyTip, setShowCopyTip] = useState(false);
+  const [showPasteTip, setShowPasteTip] = useState(false);
 
   useEffect(() => {
     if (!socket || !terminalRef.current) return;
@@ -104,6 +106,39 @@ const Terminal = ({ socket, username }) => {
 
     window.addEventListener('resize', handleResize);
 
+    // 添加键盘快捷键支持
+    const handleKeyDown = (e) => {
+      // Ctrl+C 复制 (只有当有选中文本时)
+      if (e.ctrlKey && e.key === 'c') {
+        e.preventDefault();
+        handleCopy();
+        return;
+      }
+
+      // Ctrl+V 粘贴
+      if (e.ctrlKey && e.key === 'v') {
+        e.preventDefault();
+        handlePaste();
+        return;
+      }
+
+      // Ctrl+Shift+C 强制复制
+      if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+        e.preventDefault();
+        handleCopy();
+        return;
+      }
+
+      // Ctrl+Shift+V 强制粘贴
+      if (e.ctrlKey && e.shiftKey && e.key === 'V') {
+        e.preventDefault();
+        handlePaste();
+        return;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
     // 初始化大小 - 延迟更长时间确保DOM完全渲染
     const resizeTimer = setTimeout(() => {
       handleResize();
@@ -116,6 +151,7 @@ const Terminal = ({ socket, username }) => {
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      document.removeEventListener('keydown', handleKeyDown);
       clearTimeout(resizeTimer);
       clearTimeout(secondResizeTimer);
       socket.off('terminal-output');
@@ -156,6 +192,38 @@ const Terminal = ({ socket, username }) => {
     }
   };
 
+  const handleCopy = async () => {
+    setShowCopyTip(true);
+    setTimeout(() => setShowCopyTip(false), 3000);
+  };
+
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        setShowPasteTip(true);
+        setTimeout(() => setShowPasteTip(false), 3000);
+
+        // 尝试通过模拟键盘输入来粘贴
+        const iframe = document.querySelector('iframe[title="WebSSH Terminal"]');
+        if (iframe) {
+          iframe.focus();
+          // 模拟Ctrl+Shift+V
+          const event = new KeyboardEvent('keydown', {
+            key: 'V',
+            code: 'KeyV',
+            ctrlKey: true,
+            shiftKey: true,
+            bubbles: true
+          });
+          iframe.dispatchEvent(event);
+        }
+      }
+    } catch (error) {
+      console.error('粘贴失败:', error);
+    }
+  };
+
   return (
     <div className={`terminal-container ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
       {/* 终端头部 */}
@@ -172,6 +240,20 @@ const Terminal = ({ socket, username }) => {
         </div>
 
         <div className="flex items-center space-x-2">
+          <button
+            onClick={handleCopy}
+            className="p-1 text-gray-400 hover:text-white transition-colors"
+            title="复制选中文本 (Ctrl+C)"
+          >
+            <Copy size={16} />
+          </button>
+          <button
+            onClick={handlePaste}
+            className="p-1 text-gray-400 hover:text-white transition-colors"
+            title="粘贴 (Ctrl+V)"
+          >
+            <Clipboard size={16} />
+          </button>
           <button
             onClick={handleClear}
             className="p-1 text-gray-400 hover:text-white transition-colors"
@@ -222,6 +304,19 @@ const Terminal = ({ socket, username }) => {
           }}
           title="WebSSH Terminal"
         />
+
+        {/* 复制粘贴提示 */}
+        {showCopyTip && (
+          <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-2 rounded-lg shadow-lg z-10">
+            💡 请在终端中选中文本后使用 Ctrl+Shift+C 复制
+          </div>
+        )}
+
+        {showPasteTip && (
+          <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-2 rounded-lg shadow-lg z-10">
+            ✅ 请在终端中使用 Ctrl+Shift+V 粘贴
+          </div>
+        )}
       </div>
 
       {/* 状态栏 */}
