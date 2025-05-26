@@ -8,8 +8,8 @@ const LoginForm = ({ onLogin, error }) => {
   const [rememberMe, setRememberMe] = useState(false);
 
   const validateUsername = (name) => {
-    // Linux用户名规则验证
-    const regex = /^[a-z][a-z0-9_-]{0,31}$/;
+    // Linux用户名规则验证：最多8个字符
+    const regex = /^[a-z][a-z0-9_-]{0,7}$/;
     return regex.test(name) && !name.endsWith('-');
   };
 
@@ -115,6 +115,7 @@ const LoginForm = ({ onLogin, error }) => {
               value={username}
               onChange={(e) => setUsername(e.target.value.toLowerCase())}
               placeholder="输入你的用户名"
+              maxLength={8}
               className={`block w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-linuxdo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 ${
                 username && !isValid
                   ? 'border-red-300 bg-red-50 dark:border-red-600 dark:bg-red-900/20'
@@ -131,7 +132,7 @@ const LoginForm = ({ onLogin, error }) => {
             <p>用户名规则：</p>
             <ul className="list-disc list-inside space-y-1 mt-1">
               <li>只能包含小写字母、数字、下划线、连字符</li>
-              <li>必须以字母开头，长度1-32字符</li>
+              <li>必须以字母开头，长度1-8字符</li>
               <li>不能以连字符结尾</li>
             </ul>
           </div>
@@ -256,22 +257,7 @@ const LoginForm = ({ onLogin, error }) => {
         </button>
       </form>
 
-      {/* 示例用户名 */}
-      <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-        <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">示例用户名：</p>
-        <div className="flex flex-wrap gap-2">
-          {['alice', 'bob123', 'dev_user', 'test-user'].map((example) => (
-            <button
-              key={example}
-              onClick={() => setUsername(example)}
-              className="px-2 py-1 text-xs bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors text-gray-700 dark:text-gray-200"
-              disabled={isLoading}
-            >
-              {example}
-            </button>
-          ))}
-        </div>
-      </div>
+
     </div>
   );
 };
