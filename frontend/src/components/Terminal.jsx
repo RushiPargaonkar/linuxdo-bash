@@ -206,7 +206,14 @@ const Terminal = ({ socket, username }) => {
       >
         {/* 使用iframe嵌入webssh - 这个方案已经验证可以工作 */}
         <iframe
-          src={`http://localhost:3002/ssh?username=${username}`}
+          src={(() => {
+            if (window.location.hostname.includes('github.dev')) {
+              // GitHub Codespaces环境
+              const websshUrl = window.location.origin.replace('-5173', '-3002');
+              return `${websshUrl}/ssh?username=${username}`;
+            }
+            return `http://localhost:3002/ssh?username=${username}`;
+          })()}
           style={{
             width: '100%',
             height: '100%',

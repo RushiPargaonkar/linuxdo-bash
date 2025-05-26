@@ -42,7 +42,16 @@ function App() {
     // 自动填充功能在LoginForm组件中处理
 
     // 初始化Socket连接
-    const newSocket = io(window.location.origin, {
+    // 根据环境自动选择后端地址
+    const getBackendUrl = () => {
+      if (window.location.hostname.includes('github.dev')) {
+        // GitHub Codespaces环境
+        return window.location.origin.replace('-5173', '-3001');
+      }
+      return 'http://localhost:3001';
+    };
+
+    const newSocket = io(getBackendUrl(), {
       autoConnect: false
     });
 
@@ -114,7 +123,14 @@ function App() {
 
   const handleAutoLogin = (inputUsername) => {
     // 为LinuxDo登录创建新的socket连接
-    const newSocket = io(window.location.origin, {
+    const getBackendUrl = () => {
+      if (window.location.hostname.includes('github.dev')) {
+        return window.location.origin.replace('-5173', '-3001');
+      }
+      return 'http://localhost:3001';
+    };
+
+    const newSocket = io(getBackendUrl(), {
       autoConnect: true
     });
 

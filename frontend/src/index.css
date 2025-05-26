@@ -1,9 +1,9 @@
+/* 导入 XTerm.js CSS */
+@import '@xterm/xterm/css/xterm.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* 导入 XTerm.js CSS */
-@import '@xterm/xterm/css/xterm.css';
 
 @layer base {
   html {

@@ -18,14 +18,23 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: process.env.NODE_ENV === 'production' ? false : "http://localhost:5173",
-    methods: ["GET", "POST"]
+    origin: process.env.NODE_ENV === 'production' ? false : [
+      "http://localhost:5173",
+      "http://localhost:3000",
+      /^https:\/\/.*\.app\.github\.dev$/
+    ],
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
 // 中间件
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? false : "http://localhost:3000",
+  origin: process.env.NODE_ENV === 'production' ? false : [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    /^https:\/\/.*\.app\.github\.dev$/
+  ],
   credentials: true
 }));
 app.use(express.json());
