@@ -62,9 +62,26 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
 
   const formatTerminalOutput = (output) => {
     if (!output) return '';
+
+    // 清理终端控制序列和冗余提示符
+    let cleaned = output
+      // 移除ANSI转义序列
+      .replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '')
+      // 移除终端控制序列
+      .replace(/\[\?[0-9]+[hl]/g, '')
+      // 移除窗口标题设置
+      .replace(/\x1b\]0;[^\x07]*\x07/g, '')
+      // 移除重复的提示符
+      .replace(/root@[a-f0-9]+:[^\$#]*[\$#]\s*root@[a-f0-9]+:[^\$#]*[\$#]/g, 'root@container:~# ')
+      // 简化长提示符
+      .replace(/root@[a-f0-9]{12,}:[^\$#]*[\$#]/g, 'root@container:~# ')
+      // 移除多余的空行
+      .replace(/\n\s*\n/g, '\n')
+      .trim();
+
     // 只显示最后几行，避免内容过长
-    const lines = output.split('\n');
-    const lastLines = lines.slice(-10); // 显示最后10行
+    const lines = cleaned.split('\n');
+    const lastLines = lines.slice(-8); // 显示最后8行
     return lastLines.join('\n');
   };
 
@@ -126,8 +143,8 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
                     }`}
                     title={likedUsers.has(username) ? '今天已点赞' : '给TA点赞'}
                   >
-                    <Heart 
-                      className={`h-4 w-4 ${likedUsers.has(username) ? 'fill-current' : ''}`} 
+                    <Heart
+                      className={`h-4 w-4 ${likedUsers.has(username) ? 'fill-current' : ''}`}
                     />
                   </button>
                 </div>

@@ -6,6 +6,27 @@ const UserList = ({ users, currentUsername, socket }) => {
   const [isResetting, setIsResetting] = useState(false);
   const [isExtending, setIsExtending] = useState(false);
 
+  // 清理终端输出
+  const cleanTerminalOutput = (output) => {
+    if (!output) return '';
+
+    return output
+      // 移除ANSI转义序列
+      .replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '')
+      // 移除终端控制序列
+      .replace(/\[\?[0-9]+[hl]/g, '')
+      // 移除窗口标题设置
+      .replace(/\x1b\]0;[^\x07]*\x07/g, '')
+      // 简化长提示符
+      .replace(/root@[a-f0-9]{12,}:[^\$#]*[\$#]/g, '$ ')
+      // 移除多余的空行和空格
+      .replace(/\n\s*\n/g, '\n')
+      .trim()
+      // 只取最后一行有意义的内容
+      .split('\n')
+      .slice(-1)[0] || '';
+  };
+
   const formatUptime = (uptime) => {
     const minutes = Math.floor(uptime / (1000 * 60));
     const hours = Math.floor(minutes / 60);
@@ -205,7 +226,7 @@ const UserList = ({ users, currentUsername, socket }) => {
                       <Eye size={10} className="text-gray-500" />
                     </div>
                     <div className="truncate">
-                      {userTerminalOutputs[user.username]}
+                      {cleanTerminalOutput(userTerminalOutputs[user.username])}
                     </div>
                   </div>
                 )}
