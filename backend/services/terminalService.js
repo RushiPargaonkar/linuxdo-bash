@@ -25,17 +25,28 @@ class TerminalService {
         cols: 80,
         rows: 24,
         cwd: process.env.HOME,
-        env: process.env
+        env: {
+          ...process.env,
+          TMOUT: '0', // 禁用bash超时
+          HISTCONTROL: 'ignoredups',
+          HISTSIZE: '1000'
+        }
       });
 
       const terminalSession = {
         pid: terminal.pid,
         terminal: terminal,
+        lastActivity: Date.now(),
+        keepAliveInterval: null,
         write: (data) => {
           terminal.write(data);
+          terminalSession.lastActivity = Date.now();
         },
         onData: (callback) => {
-          terminal.on('data', callback);
+          terminal.on('data', (data) => {
+            terminalSession.lastActivity = Date.now();
+            callback(data);
+          });
         },
         onExit: (callback) => {
           terminal.on('exit', callback);
@@ -44,9 +55,28 @@ class TerminalService {
           terminal.resize(cols, rows);
         },
         kill: () => {
+          if (terminalSession.keepAliveInterval) {
+            clearInterval(terminalSession.keepAliveInterval);
+          }
           terminal.kill();
         }
       };
+
+      // 设置心跳机制，每30秒发送一个空字符来保持连接
+      terminalSession.keepAliveInterval = setInterval(() => {
+        const now = Date.now();
+        const timeSinceLastActivity = now - terminalSession.lastActivity;
+
+        // 如果超过5分钟没有活动，发送心跳
+        if (timeSinceLastActivity > 5 * 60 * 1000) {
+          try {
+            // 发送一个不可见的字符来保持连接
+            terminal.write('');
+          } catch (error) {
+            console.error('心跳发送失败:', error);
+          }
+        }
+      }, 30 * 1000); // 每30秒检查一次
 
       this.terminals.set(terminal.pid, terminalSession);
 

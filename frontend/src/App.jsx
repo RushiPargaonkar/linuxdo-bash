@@ -55,16 +55,40 @@ function App() {
     };
 
     const newSocket = io(getBackendUrl(), {
-      autoConnect: false
+      autoConnect: false,
+      timeout: 20000,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
+      maxReconnectionAttempts: 5,
+      forceNew: true
     });
 
     newSocket.on('connect', () => {
       console.log('Socket连接成功');
+
+      // 设置心跳机制，每30秒发送一次ping
+      const heartbeatInterval = setInterval(() => {
+        if (newSocket.connected) {
+          newSocket.emit('ping');
+        } else {
+          clearInterval(heartbeatInterval);
+        }
+      }, 30000);
+
+      // 存储心跳定时器，以便在断开连接时清理
+      newSocket.heartbeatInterval = heartbeatInterval;
     });
 
     newSocket.on('disconnect', () => {
       console.log('Socket连接断开');
       setIsConnected(false);
+
+      // 清理心跳定时器
+      if (newSocket.heartbeatInterval) {
+        clearInterval(newSocket.heartbeatInterval);
+        newSocket.heartbeatInterval = null;
+      }
     });
 
     newSocket.on('error', (data) => {

@@ -297,6 +297,14 @@ CMD ["/bin/bash"]
       `echo "${username} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers`,
       // 设置用户目录权限
       `chown -R ${username}:${username} /home/${username}`,
+      // 禁用bash超时和设置会话保持
+      `echo 'unset TMOUT' >> /home/${username}/.bashrc`,
+      `echo 'export TMOUT=0' >> /home/${username}/.bashrc`,
+      `echo 'export HISTCONTROL=ignoredups' >> /home/${username}/.bashrc`,
+      `echo 'export HISTSIZE=1000' >> /home/${username}/.bashrc`,
+      `echo 'export HISTFILESIZE=2000' >> /home/${username}/.bashrc`,
+      // 设置终端保持活跃
+      `echo 'set +o posix' >> /home/${username}/.bashrc`,
       // 创建欢迎文件
       `cat > /home/${username}/welcome.txt << 'EOF'
 =================================

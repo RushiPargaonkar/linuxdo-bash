@@ -418,6 +418,11 @@ io.on('connection', (socket) => {
     }
   });
 
+  // 心跳检测
+  socket.on('ping', () => {
+    socket.emit('pong');
+  });
+
   // 断开连接
   socket.on('disconnect', () => {
     console.log('用户断开连接:', socket.id, socket.username);
