@@ -199,17 +199,10 @@ io.on('connection', (socket) => {
       // 添加到在线用户列表
       activeUsers.add(username);
 
-      // 延迟一点确保socket完全准备好，然后广播给所有用户（包括新用户）
-      setTimeout(() => {
-        const userList = getActiveUsersList();
-        console.log('广播用户列表给所有用户:', userList);
+      // 通知其他用户有新用户加入
+      socket.broadcast.emit('user-joined', { username });
 
-        // 广播给所有用户（包括新加入的用户）
-        io.emit('user-list-updated', userList);
-
-        // 通知其他用户有新用户加入
-        socket.broadcast.emit('user-joined', { username });
-      }, 100);
+      // 不在这里广播用户列表，等前端准备好后主动请求
 
     } catch (error) {
       console.error('用户加入失败:', error);
@@ -310,7 +303,13 @@ io.on('connection', (socket) => {
   // 获取在线用户列表
   socket.on('get-user-list', () => {
     const userList = getActiveUsersList();
+    console.log('用户请求用户列表:', socket.username, '当前列表:', userList);
+
+    // 发送给请求的用户
     socket.emit('user-list-updated', userList);
+
+    // 同时广播给所有其他用户，确保同步
+    socket.broadcast.emit('user-list-updated', userList);
   });
 
   // 重置容器

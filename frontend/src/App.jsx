@@ -203,16 +203,36 @@ function App() {
 
     socketInstance.on('user-joined', (data) => {
       console.log('用户加入 (setupSocketListeners):', data.username);
+      // 有新用户加入时，主动请求最新用户列表
+      setTimeout(() => {
+        socketInstance.emit('get-user-list');
+      }, 500);
     });
 
     socketInstance.on('user-left', (data) => {
       console.log('用户离开 (setupSocketListeners):', data.username);
+      // 有用户离开时，主动请求最新用户列表
+      setTimeout(() => {
+        socketInstance.emit('get-user-list');
+      }, 500);
     });
 
     socketInstance.on('user-list-updated', (userList) => {
       console.log('用户列表更新 (setupSocketListeners):', userList);
       setActiveUsers(userList);
     });
+
+    // 定期同步用户列表，确保数据准确
+    const syncInterval = setInterval(() => {
+      if (socketInstance.connected) {
+        socketInstance.emit('get-user-list');
+      }
+    }, 10000); // 每10秒同步一次
+
+    // 清理定时器
+    return () => {
+      clearInterval(syncInterval);
+    };
 
     socketInstance.on('container-reset', (data) => {
       // 容器重置成功，显示消息
