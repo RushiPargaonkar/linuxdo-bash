@@ -76,8 +76,22 @@ const UserList = ({ users, currentUsername, socket }) => {
     }
   ];
 
-  // 只有当前用户时显示模拟数据，否则使用真实数据
-  const displayUsers = users.length > 0 ? users : (currentUsername ? mockUsers : []);
+  // 转换用户数据格式
+  const displayUsers = users.length > 0 ?
+    users.map(username => {
+      // 如果是字符串，转换为对象格式
+      if (typeof username === 'string') {
+        return {
+          username,
+          containerId: 'container-' + username.substring(0, 8),
+          createdAt: Date.now() - 30 * 60 * 1000, // 默认30分钟前
+          uptime: 30 * 60 * 1000
+        };
+      }
+      // 如果已经是对象，直接返回
+      return username;
+    }) :
+    (currentUsername ? mockUsers : []);
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -100,7 +114,8 @@ const UserList = ({ users, currentUsername, socket }) => {
             <p>暂无在线用户</p>
           </div>
         ) : (
-          displayUsers.map((user) => {
+          displayUsers.filter(user => user && user.username).map((user) => {
+
             const isCurrentUser = user.username === currentUsername;
 
             return (
@@ -111,7 +126,7 @@ const UserList = ({ users, currentUsername, socket }) => {
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${
                       isCurrentUser ? 'bg-linuxdo-500' : 'bg-gray-500'
                     }`}>
-                      {user.username.charAt(0).toUpperCase()}
+                      {user.username && user.username.charAt(0).toUpperCase()}
                     </div>
 
                     <div className="flex-1">
