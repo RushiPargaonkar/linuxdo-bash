@@ -237,42 +237,25 @@ class ChatService {
         return;
       }
 
-      // 检查今天是否已经给这个用户点过赞
-      this.db.get(`
-        SELECT id FROM likes
-        WHERE from_user = ? AND to_user = ? AND like_date = date('now')
-      `, [fromUser, toUser], (err, row) => {
+      // 直接插入点赞记录，不检查限制
+      const stmt = this.db.prepare(`
+        INSERT INTO likes (from_user, to_user, like_date, timestamp, created_at)
+        VALUES (?, ?, date('now'), datetime('now'), strftime('%s', 'now'))
+      `);
+
+      stmt.run([fromUser, toUser], function(err) {
         if (err) {
-          console.error('检查点赞记录失败:', err);
+          console.error('保存点赞记录失败:', err);
           reject(err);
-          return;
+        } else {
+          resolve({
+            id: this.lastID,
+            fromUser,
+            toUser,
+            timestamp: new Date().toISOString()
+          });
         }
-
-        if (row) {
-          reject(new Error('今天已经给这个用户点过赞了'));
-          return;
-        }
-
-        // 插入点赞记录
-        const stmt = this.db.prepare(`
-          INSERT INTO likes (from_user, to_user, like_date, timestamp, created_at)
-          VALUES (?, ?, date('now'), datetime('now'), strftime('%s', 'now'))
-        `);
-
-        stmt.run([fromUser, toUser], function(err) {
-          if (err) {
-            console.error('保存点赞记录失败:', err);
-            reject(err);
-          } else {
-            resolve({
-              id: this.lastID,
-              fromUser,
-              toUser,
-              timestamp: new Date().toISOString()
-            });
-          }
-          stmt.finalize();
-        });
+        stmt.finalize();
       });
     });
   }

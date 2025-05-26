@@ -4,7 +4,6 @@ import { Heart, User, Monitor, Eye } from 'lucide-react';
 const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
   const [userLikes, setUserLikes] = useState({});
   const [terminalOutputs, setTerminalOutputs] = useState({});
-  const [likedUsers, setLikedUsers] = useState(new Set());
 
   // 过滤掉当前用户，只显示其他用户
   const otherUsers = activeUsers.filter(user => user !== currentUsername);
@@ -36,11 +35,10 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
       setUserLikes(allLikes);
     });
 
-    // 监听点赞事件
+    // 监听点赞事件（移除限制逻辑）
     socket.on('user-liked', (data) => {
-      if (data.fromUser === currentUsername) {
-        setLikedUsers(prev => new Set([...prev, data.toUser]));
-      }
+      // 点赞事件处理，不需要特殊逻辑
+      console.log('用户点赞:', data);
     });
 
     // 获取初始点赞数据
@@ -55,7 +53,7 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
   }, [socket, currentUsername]);
 
   const handleLikeUser = (username) => {
-    if (socket && !likedUsers.has(username)) {
+    if (socket) {
       socket.emit('like-user', { targetUsername: username });
     }
   };
@@ -135,17 +133,10 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
                   </span>
                   <button
                     onClick={() => handleLikeUser(username)}
-                    disabled={likedUsers.has(username)}
-                    className={`p-2 rounded-full transition-colors ${
-                      likedUsers.has(username)
-                        ? 'bg-red-100 text-red-500 cursor-not-allowed'
-                        : 'bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-500'
-                    }`}
-                    title={likedUsers.has(username) ? '今天已点赞' : '给TA点赞'}
+                    className="p-2 rounded-full transition-colors bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-500"
+                    title="给TA点赞"
                   >
-                    <Heart
-                      className={`h-4 w-4 ${likedUsers.has(username) ? 'fill-current' : ''}`}
-                    />
+                    <Heart className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -177,7 +168,7 @@ const OtherUsersTerminals = ({ socket, currentUsername, activeUsers }) => {
             <div className="text-sm text-blue-700">
               <p className="font-medium">互动功能</p>
               <p className="text-blue-600 mt-1">
-                观看其他用户的实时操作，给优秀的操作点赞鼓励！每天每人只能给同一用户点赞一次。
+                观看其他用户的实时操作，给优秀的操作点赞鼓励！可以无限制点赞支持。
               </p>
             </div>
           </div>
