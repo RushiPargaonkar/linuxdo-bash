@@ -231,17 +231,36 @@ io.on('connection', (socket) => {
   // 聊天消息
   socket.on('chat-message', async (data) => {
     try {
+      console.log('收到聊天消息:', { username: socket.username, message: data.message });
+
+      // 检查用户是否已登录
+      if (!socket.username) {
+        console.error('用户未登录尝试发送消息');
+        socket.emit('error', { message: '请先登录后再发送消息' });
+        return;
+      }
+
+      // 检查消息内容
+      if (!data.message || !data.message.trim()) {
+        console.error('空消息内容');
+        socket.emit('error', { message: '消息内容不能为空' });
+        return;
+      }
+
       // 检查防刷屏限制
       const rateLimitCheck = chatService.checkRateLimit(socket.username, data.message);
       if (!rateLimitCheck.allowed) {
+        console.log('消息被防刷屏限制:', rateLimitCheck.reason);
         socket.emit('error', { message: rateLimitCheck.reason });
         return;
       }
 
       const message = await chatService.saveMessage(socket.username, data.message);
+      console.log('消息保存成功，广播给所有用户:', message);
       io.emit('chat-message', message);
     } catch (error) {
-      socket.emit('error', { message: '发送消息失败' });
+      console.error('聊天消息处理失败:', error);
+      socket.emit('error', { message: '发送消息失败: ' + error.message });
     }
   });
 

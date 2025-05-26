@@ -117,13 +117,9 @@ function App() {
       setActiveUsers(userList);
     });
 
-    newSocket.on('chat-message', (message) => {
-      setChatMessages(prev => [...prev, message]);
-    });
-
-    newSocket.on('chat-history', (messages) => {
-      setChatMessages(messages);
-    });
+    // 聊天相关事件监听器移到setupSocketListeners中，避免重复
+    // 设置Socket监听器
+    setupSocketListeners(newSocket);
 
     setSocket(newSocket);
 
@@ -196,10 +192,16 @@ function App() {
     });
 
     socketInstance.on('chat-message', (message) => {
-      setChatMessages(prev => [...prev, message]);
+      console.log('收到新聊天消息:', message);
+      setChatMessages(prev => {
+        const newMessages = [...prev, message];
+        console.log('更新聊天消息列表:', newMessages);
+        return newMessages;
+      });
     });
 
     socketInstance.on('chat-history', (messages) => {
+      console.log('收到聊天历史:', messages);
       setChatMessages(messages);
     });
 
@@ -251,13 +253,25 @@ function App() {
     });
 
     socketInstance.on('error', (data) => {
+      console.error('Socket错误:', data);
       setError(data.message);
       setIsCreatingContainer(false);
+
+      // 如果是聊天相关错误，显示临时提示
+      if (data.message.includes('发送消息') || data.message.includes('聊天')) {
+        // 可以添加toast通知或其他UI反馈
+        console.warn('聊天错误:', data.message);
+      }
     });
   };
 
   const handleSendMessage = (message) => {
-    if (!socket || !isConnected) return;
+    if (!socket || !isConnected) {
+      console.error('无法发送消息: socket未连接', { socket: !!socket, isConnected });
+      return;
+    }
+
+    console.log('发送聊天消息:', { message, username, isConnected });
     socket.emit('chat-message', { message });
   };
 
