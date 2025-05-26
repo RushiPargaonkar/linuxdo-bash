@@ -70,16 +70,20 @@ class ChatService {
           console.error('保存消息失败:', err);
           reject(err);
         } else {
+          const insertId = this.lastID;
+
           // 获取刚插入的消息
-          const selectStmt = this.db.prepare(`
+          this.db.get(`
             SELECT id, username, message, timestamp, created_at
             FROM messages
             WHERE id = ?
-          `);
-
-          selectStmt.get([this.lastID], (err, row) => {
+          `, [insertId], (err, row) => {
             if (err) {
+              console.error('查询插入的消息失败:', err);
               reject(err);
+            } else if (!row) {
+              console.error('未找到插入的消息');
+              reject(new Error('未找到插入的消息'));
             } else {
               resolve({
                 id: row.id,
@@ -89,7 +93,6 @@ class ChatService {
                 createdAt: row.created_at * 1000 // 转换为毫秒
               });
             }
-            selectStmt.finalize();
           });
         }
         stmt.finalize();

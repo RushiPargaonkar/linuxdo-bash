@@ -98,6 +98,7 @@ io.on('connection', (socket) => {
       // 绑定终端事件
       terminal.onData((data) => {
         try {
+          console.log('Sending terminal output to client:', data);
           socket.emit('terminal-output', data);
           // 广播给其他用户（只读）
           socket.broadcast.emit('user-terminal-output', {

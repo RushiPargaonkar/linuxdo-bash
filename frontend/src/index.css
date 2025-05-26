@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 导入 XTerm.js CSS */
+@import '@xterm/xterm/css/xterm.css';
+
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;
@@ -105,33 +108,21 @@
   }
 }
 
-/* XTerm.js 样式覆盖 */
+/* XTerm.js 基础样式 */
 .xterm {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', monospace !important;
+  font-family: monospace !important;
   font-size: 14px !important;
-  line-height: 1.2 !important;
-  padding: 0 !important;
-  margin: 0 !important;
+  background-color: #000000 !important;
+  color: #ffffff !important;
 }
 
 .xterm-viewport {
-  overflow-y: auto !important;
   background-color: #000000 !important;
 }
 
 .xterm-screen {
-  padding: 10px !important;
-  margin: 0 !important;
-}
-
-.xterm-rows {
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-.xterm-helper-textarea {
-  position: absolute !important;
-  left: -9999px !important;
+  background-color: #000000 !important;
+  color: #ffffff !important;
 }
 
 /* 修复终端定位问题 */
@@ -147,16 +138,47 @@
 .terminal-container .xterm {
   width: 100% !important;
   height: 100% !important;
+  background-color: #000000 !important;
 }
 
 .terminal-container .xterm-viewport {
   width: 100% !important;
   height: 100% !important;
+  background-color: #000000 !important;
 }
 
 .terminal-container .xterm-screen {
   width: 100% !important;
   height: 100% !important;
+  background-color: #000000 !important;
+}
+
+/* 强制显示终端文本 */
+.terminal-container .xterm-rows {
+  color: #ffffff !important;
+}
+
+.terminal-container .xterm-cursor-layer {
+  z-index: 10 !important;
+}
+
+.terminal-container .xterm-text-layer {
+  z-index: 5 !important;
+  color: #ffffff !important;
+}
+
+/* 强制所有终端文本可见 */
+.terminal-container .xterm-char-measure-element,
+.terminal-container .xterm-rows > div,
+.terminal-container .xterm-rows span {
+  color: #ffffff !important;
+  background-color: transparent !important;
+}
+
+/* 确保光标可见 */
+.terminal-container .xterm-cursor {
+  background-color: #ffffff !important;
+  color: #000000 !important;
 }
 
 /* 滚动条样式 */

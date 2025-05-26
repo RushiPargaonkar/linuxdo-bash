@@ -6,9 +6,13 @@ import Chat from './components/Chat';
 import UserList from './components/UserList';
 import ProgressModal from './components/ProgressModal';
 import Header from './components/Header';
+import TestTerminal from './components/TestTerminal';
 import { Terminal as TerminalIcon, MessageCircle, Users } from 'lucide-react';
 
 function App() {
+  // 临时测试模式 - 设置为true来测试xterm
+  const [testMode, setTestMode] = useState(false);
+
   const [socket, setSocket] = useState(null);
   const [username, setUsername] = useState('');
   const [isConnected, setIsConnected] = useState(false);
@@ -79,12 +83,12 @@ function App() {
 
   const handleLogin = (inputUsername) => {
     if (!socket) return;
-    
+
     setUsername(inputUsername);
     setError('');
     socket.connect();
     socket.emit('join', { username: inputUsername });
-    
+
     // 获取聊天历史
     socket.emit('get-chat-history');
   };
@@ -106,6 +110,23 @@ function App() {
     setError('');
   };
 
+  // 测试模式 - 只显示测试终端
+  if (testMode) {
+    return (
+      <div className="min-h-screen bg-gray-900">
+        <div className="p-4">
+          <button
+            onClick={() => setTestMode(false)}
+            className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            退出测试模式
+          </button>
+          <TestTerminal />
+        </div>
+      </div>
+    );
+  }
+
   if (!isConnected && !isCreatingContainer) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-linuxdo-50 to-linuxdo-100">
@@ -123,9 +144,9 @@ function App() {
                 输入用户名获得你的专属Linux容器
               </p>
             </div>
-            
+
             <LoginForm onLogin={handleLogin} error={error} />
-            
+
             <div className="mt-8 text-center text-sm text-gray-500">
               <p>🐳 每个用户独立容器</p>
               <p>🛡️ 完全安全隔离</p>
@@ -141,7 +162,7 @@ function App() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-linuxdo-50 to-linuxdo-100">
         <Header />
-        <ProgressModal 
+        <ProgressModal
           progress={progress.progress}
           message={progress.message}
           username={username}
@@ -153,7 +174,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header username={username} onLogout={handleLogout} />
-      
+
       {/* 移动端标签切换 */}
       <div className="lg:hidden bg-white border-b">
         <div className="flex">
@@ -199,19 +220,19 @@ function App() {
           <div className={`lg:col-span-3 ${activeTab !== 'terminal' ? 'hidden lg:block' : ''}`}>
             <Terminal socket={socket} username={username} />
           </div>
-          
+
           {/* 侧边栏 */}
           <div className="lg:col-span-1 space-y-6">
             {/* 聊天室 */}
             <div className={`${activeTab !== 'chat' ? 'hidden lg:block' : ''}`}>
-              <Chat 
+              <Chat
                 socket={socket}
                 messages={chatMessages}
                 currentUsername={username}
                 onSendMessage={handleSendMessage}
               />
             </div>
-            
+
             {/* 用户列表 */}
             <div className={`${activeTab !== 'users' ? 'hidden lg:block' : ''}`}>
               <UserList users={activeUsers} currentUsername={username} />

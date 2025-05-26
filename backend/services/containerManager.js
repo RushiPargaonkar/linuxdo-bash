@@ -15,7 +15,7 @@ class ContainerManager {
     if (!username || typeof username !== 'string') {
       return false;
     }
-    
+
     // Linux用户名规则：
     // - 长度1-32字符
     // - 只能包含小写字母、数字、下划线、连字符
@@ -32,12 +32,12 @@ class ContainerManager {
     // 检查是否已有容器
     if (this.containers.has(username)) {
       const containerInfo = this.containers.get(username);
-      
+
       // 检查容器是否还在运行
       try {
         const container = this.docker.getContainer(containerInfo.containerId);
         const info = await container.inspect();
-        
+
         if (info.State.Running) {
           return {
             containerId: containerInfo.containerId,
@@ -68,10 +68,26 @@ class ContainerManager {
    */
   async createContainer(username) {
     const containerName = `linuxdo-${username}`;
-    
+
     try {
       // 确保镜像存在
       await this.ensureImage();
+
+      // 检查并清理同名容器
+      try {
+        const existingContainer = this.docker.getContainer(containerName);
+        const info = await existingContainer.inspect();
+        console.log(`发现同名容器 ${containerName}，正在清理...`);
+
+        if (info.State.Running) {
+          await existingContainer.kill();
+        }
+        await existingContainer.remove();
+        console.log(`同名容器 ${containerName} 已清理`);
+      } catch (error) {
+        // 容器不存在，继续创建
+        console.log(`容器 ${containerName} 不存在，继续创建`);
+      }
 
       // 创建容器
       const container = await this.docker.createContainer({
@@ -183,7 +199,7 @@ CMD ["/bin/bash"]
         try {
           fs.unlinkSync(dockerfilePath);
         } catch (e) {}
-        
+
         if (err) reject(err);
         else resolve(res);
       });
@@ -231,7 +247,7 @@ CMD ["/bin/bash"]
       try {
         const container = this.docker.getContainer(info.containerId);
         const containerInfo = await container.inspect();
-        
+
         if (containerInfo.State.Running) {
           users.push({
             username,

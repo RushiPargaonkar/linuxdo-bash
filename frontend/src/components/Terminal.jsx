@@ -13,38 +13,15 @@ const Terminal = ({ socket, username }) => {
   useEffect(() => {
     if (!socket || !terminalRef.current) return;
 
-    // 创建终端实例
+    // 创建终端实例 - 使用最简单的配置
     const xterm = new XTerm({
-      cursorBlink: true,
-      cursorStyle: 'block',
       fontSize: 14,
-      fontFamily: 'JetBrains Mono, Fira Code, Monaco, Consolas, monospace',
+      fontFamily: 'monospace',
+      cursorBlink: true,
       theme: {
-        background: '#1a1a1a',
-        foreground: '#ffffff',
-        cursor: '#ffffff',
-        selection: '#3e3e3e',
-        black: '#000000',
-        red: '#ff5555',
-        green: '#50fa7b',
-        yellow: '#f1fa8c',
-        blue: '#bd93f9',
-        magenta: '#ff79c6',
-        cyan: '#8be9fd',
-        white: '#bfbfbf',
-        brightBlack: '#4d4d4d',
-        brightRed: '#ff6e67',
-        brightGreen: '#5af78e',
-        brightYellow: '#f4f99d',
-        brightBlue: '#caa9fa',
-        brightMagenta: '#ff92d0',
-        brightCyan: '#9aedfe',
-        brightWhite: '#e6e6e6'
-      },
-      allowTransparency: false,
-      convertEol: true,
-      scrollback: 1000,
-      tabStopWidth: 4
+        background: '#000000',
+        foreground: '#ffffff'
+      }
     });
 
     // 添加插件
@@ -57,15 +34,22 @@ const Terminal = ({ socket, username }) => {
     // 打开终端
     try {
       xterm.open(terminalRef.current);
+      console.log('Terminal opened successfully');
 
-      // 延迟调用fit，确保DOM完全渲染
+      // 立即写入连接状态
+      xterm.write('\x1b[36m正在连接到容器...\x1b[0m\r\n');
+      xterm.write('\x1b[33m请稍候，正在准备您的Linux环境\x1b[0m\r\n');
+      xterm.write('\r\n');
+
+      // 延迟调用fit
       setTimeout(() => {
         try {
           fitAddon.fit();
+          console.log('Terminal fitted, size:', xterm.cols, 'x', xterm.rows);
         } catch (error) {
           console.warn('Initial fit failed:', error);
         }
-      }, 100);
+      }, 200);
     } catch (error) {
       console.error('Terminal open failed:', error);
       return;
@@ -83,7 +67,19 @@ const Terminal = ({ socket, username }) => {
     // 监听终端输出
     socket.on('terminal-output', (data) => {
       console.log('收到终端输出:', data);
-      xterm.write(data);
+
+      try {
+        // 第一次收到数据时清除初始文本
+        if (!xterm.hasReceivedData) {
+          xterm.clear();
+          xterm.hasReceivedData = true;
+        }
+
+        // 直接写入数据
+        xterm.write(data);
+      } catch (error) {
+        console.error('写入终端失败:', error);
+      }
     });
 
     // 监听终端退出
@@ -195,8 +191,7 @@ const Terminal = ({ socket, username }) => {
 
       {/* 终端内容 */}
       <div
-        ref={terminalRef}
-        className={`bg-black overflow-hidden ${
+        className={`overflow-hidden ${
           isFullscreen
             ? 'h-[calc(100vh-96px)]'
             : 'h-96 lg:h-[500px]'
@@ -204,9 +199,23 @@ const Terminal = ({ socket, username }) => {
         style={{
           minHeight: '300px',
           width: '100%',
-          position: 'relative'
+          position: 'relative',
+          backgroundColor: '#000000',
+          color: '#ffffff'
         }}
-      />
+      >
+        {/* 使用iframe嵌入webssh - 这个方案已经验证可以工作 */}
+        <iframe
+          src={`http://localhost:3002/ssh?username=${username}`}
+          style={{
+            width: '100%',
+            height: '100%',
+            border: 'none',
+            backgroundColor: '#000000'
+          }}
+          title="WebSSH Terminal"
+        />
+      </div>
 
       {/* 状态栏 */}
       <div className="bg-gray-800 px-4 py-2 text-xs text-gray-400 flex justify-between items-center">
