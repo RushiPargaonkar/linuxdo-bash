@@ -94,14 +94,22 @@ const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
                     key={message.id || index}
                     className={`chat-message ${isOwn ? 'own' : 'other'} fade-in`}
                   >
-                    {!isOwn && showAvatar && (
-                      <div className="flex items-center space-x-2 mb-1">
-                        <div className="w-6 h-6 bg-linuxdo-500 text-white rounded-full flex items-center justify-center text-xs font-medium">
-                          {message.username.charAt(0).toUpperCase()}
-                        </div>
+                    {/* 显示所有消息的用户名和头像（当用户变化时） */}
+                    {showAvatar && (
+                      <div className={`flex items-center space-x-2 mb-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                        {!isOwn && (
+                          <div className="w-6 h-6 bg-linuxdo-500 text-white rounded-full flex items-center justify-center text-xs font-medium">
+                            {message.username.charAt(0).toUpperCase()}
+                          </div>
+                        )}
                         <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
                           {message.username}
                         </span>
+                        {isOwn && (
+                          <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-medium">
+                            {message.username.charAt(0).toUpperCase()}
+                          </div>
+                        )}
                       </div>
                     )}
 
