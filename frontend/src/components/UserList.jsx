@@ -1,11 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Clock, Container, Eye, RotateCcw, Plus } from 'lucide-react';
-import { getUserAvatarColor, getUserInitial } from '../utils/avatarColors';
+import { Users, Clock, Container, Eye, RotateCcw, Plus, Settings } from 'lucide-react';
+import { getUserAvatarColor, getUserInitial, getUserAvatar, saveUserAvatar } from '../utils/avatarColors';
+import AvatarSelector from './AvatarSelector';
 
 const UserList = ({ users, currentUsername, socket }) => {
   const [userTerminalOutputs, setUserTerminalOutputs] = useState({});
   const [isResetting, setIsResetting] = useState(false);
   const [isExtending, setIsExtending] = useState(false);
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+  const [userAvatars, setUserAvatars] = useState({});
+
+  // 加载用户头像设置
+  useEffect(() => {
+    const loadUserAvatars = () => {
+      const avatars = {};
+      users.forEach(user => {
+        const username = typeof user === 'string' ? user : user.username;
+        const avatar = getUserAvatar(username);
+        if (avatar) {
+          avatars[username] = avatar;
+        }
+      });
+      setUserAvatars(avatars);
+    };
+
+    loadUserAvatars();
+  }, [users]);
+
+  // 处理头像更改
+  const handleAvatarChange = (avatar) => {
+    saveUserAvatar(currentUsername, avatar);
+    setUserAvatars(prev => ({
+      ...prev,
+      [currentUsername]: avatar
+    }));
+  };
 
   // 清理终端输出
   const cleanTerminalOutput = (output) => {
@@ -145,8 +174,12 @@ const UserList = ({ users, currentUsername, socket }) => {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
                     {/* 用户头像 */}
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${getUserAvatarColor(user.username)}`}>
-                      {getUserInitial(user.username)}
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium cursor-pointer transition-transform hover:scale-105 ${getUserAvatarColor(user.username, userAvatars[user.username])}`}
+                      onClick={() => isCurrentUser && setShowAvatarSelector(true)}
+                      title={isCurrentUser ? '点击更换头像' : user.username}
+                    >
+                      {getUserInitial(user.username, userAvatars[user.username])}
                     </div>
 
                     <div className="flex-1">
@@ -242,6 +275,18 @@ const UserList = ({ users, currentUsername, socket }) => {
           <span>自动清理: 2小时</span>
         </div>
       </div>
+
+      {/* 头像选择器 */}
+      {showAvatarSelector && (
+        <AvatarSelector
+          currentAvatar={{
+            ...userAvatars[currentUsername],
+            initial: getUserInitial(currentUsername)
+          }}
+          onAvatarChange={handleAvatarChange}
+          onClose={() => setShowAvatarSelector(false)}
+        />
+      )}
     </div>
   );
 };
