@@ -95,13 +95,13 @@ function App() {
     };
   }, []);
 
-  const handleLogin = (inputUsername) => {
+  const handleLogin = (inputUsername, inputPassword) => {
     if (!socket) return;
 
     setUsername(inputUsername);
     setError('');
     socket.connect();
-    socket.emit('join', { username: inputUsername });
+    socket.emit('join', { username: inputUsername, password: inputPassword });
 
     // 获取聊天历史
     socket.emit('get-chat-history');

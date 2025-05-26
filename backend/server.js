@@ -98,7 +98,7 @@ io.on('connection', (socket) => {
   // 用户加入
   socket.on('join', async (data) => {
     try {
-      const { username } = data;
+      const { username, password } = data;
 
       // 验证用户名
       if (!containerManager.validateUsername(username)) {
@@ -106,8 +106,14 @@ io.on('connection', (socket) => {
         return;
       }
 
-      // 创建或获取容器
-      const result = await containerManager.getOrCreateContainer(username);
+      // 验证密码
+      if (!password || password.length < 6) {
+        socket.emit('error', { message: '密码必须至少6位字符' });
+        return;
+      }
+
+      // 创建或获取容器（包含密码验证）
+      const result = await containerManager.getOrCreateContainer(username, password);
 
       if (result.isNew) {
         // 新容器，发送创建进度

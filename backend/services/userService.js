@@ -1,5 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const bcrypt = require('bcrypt');
 
 class UserService {
   constructor() {
@@ -24,6 +25,7 @@ class UserService {
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
         container_id TEXT,
         container_name TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -76,23 +78,54 @@ class UserService {
   /**
    * 创建新用户
    */
-  async createUser(username, containerId, containerName) {
+  async createUser(username, password, containerId, containerName) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // 加密密码
+        const saltRounds = 10;
+        const passwordHash = await bcrypt.hash(password, saltRounds);
+
+        const query = `
+          INSERT INTO users (username, password_hash, container_id, container_name, created_at, last_login)
+          VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        `;
+
+        this.db.run(query, [username, passwordHash, containerId, containerName], function(err) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve({
+              id: this.lastID,
+              username,
+              containerId,
+              containerName
+            });
+          }
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  /**
+   * 验证用户密码
+   */
+  async verifyPassword(username, password) {
     return new Promise((resolve, reject) => {
-      const query = `
-        INSERT INTO users (username, container_id, container_name, created_at, last_login)
-        VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-      `;
-      
-      this.db.run(query, [username, containerId, containerName], function(err) {
+      const query = 'SELECT password_hash FROM users WHERE username = ?';
+      this.db.get(query, [username], async (err, row) => {
         if (err) {
           reject(err);
+        } else if (!row) {
+          resolve(false); // 用户不存在
         } else {
-          resolve({
-            id: this.lastID,
-            username,
-            containerId,
-            containerName
-          });
+          try {
+            const isValid = await bcrypt.compare(password, row.password_hash);
+            resolve(isValid);
+          } catch (error) {
+            reject(error);
+          }
         }
       });
     });

@@ -27,9 +27,9 @@ class ContainerManager {
   }
 
   /**
-   * 获取或创建用户容器 - 支持一人一号逻辑
+   * 获取或创建用户容器 - 支持一人一号逻辑和密码验证
    */
-  async getOrCreateContainer(username) {
+  async getOrCreateContainer(username, password) {
     const containerName = `linuxdo-${username}`;
 
     try {
@@ -37,7 +37,13 @@ class ContainerManager {
       if (this.userService) {
         const existingUser = await this.userService.getUser(username);
         if (existingUser) {
-          console.log(`用户 ${username} 已存在，检查容器状态...`);
+          // 验证密码
+          const isPasswordValid = await this.userService.verifyPassword(username, password);
+          if (!isPasswordValid) {
+            throw new Error('密码错误');
+          }
+
+          console.log(`用户 ${username} 已存在，密码验证通过，检查容器状态...`);
 
           // 检查容器是否还在运行
           const containers = await this.docker.listContainers({ all: true });
@@ -114,7 +120,7 @@ class ContainerManager {
 
       // 4. 记录新用户到数据库
       if (this.userService) {
-        await this.userService.createUser(username, containerId, containerName);
+        await this.userService.createUser(username, password, containerId, containerName);
         console.log(`新用户 ${username} 已注册`);
       }
 
