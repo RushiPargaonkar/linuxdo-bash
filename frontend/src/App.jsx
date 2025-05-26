@@ -86,10 +86,18 @@ function App() {
       setIsConnected(true);
       setError('');
 
-      // 容器就绪后立即请求用户列表
+      // 容器就绪后多次请求用户列表，确保同步
       setTimeout(() => {
         newSocket.emit('get-user-list');
-      }, 500);
+      }, 200);
+
+      setTimeout(() => {
+        newSocket.emit('get-user-list');
+      }, 1000);
+
+      setTimeout(() => {
+        newSocket.emit('get-user-list');
+      }, 2000);
     });
 
     newSocket.on('user-joined', (data) => {

@@ -199,15 +199,17 @@ io.on('connection', (socket) => {
       // 添加到在线用户列表
       activeUsers.add(username);
 
-      // 立即发送完整用户列表给新用户
-      const userList = getActiveUsersList();
-      socket.emit('user-list-updated', userList);
+      // 延迟一点确保socket完全准备好，然后广播给所有用户（包括新用户）
+      setTimeout(() => {
+        const userList = getActiveUsersList();
+        console.log('广播用户列表给所有用户:', userList);
 
-      // 通知其他用户有新用户加入
-      socket.broadcast.emit('user-joined', { username });
+        // 广播给所有用户（包括新加入的用户）
+        io.emit('user-list-updated', userList);
 
-      // 广播更新后的用户列表给其他用户
-      socket.broadcast.emit('user-list-updated', userList);
+        // 通知其他用户有新用户加入
+        socket.broadcast.emit('user-joined', { username });
+      }, 100);
 
     } catch (error) {
       console.error('用户加入失败:', error);
