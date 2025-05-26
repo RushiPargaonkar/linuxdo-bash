@@ -21,9 +21,9 @@ const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
 
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('zh-CN', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return date.toLocaleTimeString('zh-CN', {
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
@@ -38,9 +38,9 @@ const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
     } else if (date.toDateString() === yesterday.toDateString()) {
       return '昨天';
     } else {
-      return date.toLocaleDateString('zh-CN', { 
-        month: 'short', 
-        day: 'numeric' 
+      return date.toLocaleDateString('zh-CN', {
+        month: 'short',
+        day: 'numeric'
       });
     }
   };
@@ -68,7 +68,7 @@ const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
       {/* 消息列表 */}
       <div className="chat-messages">
         {Object.keys(groupedMessages).length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
+          <div className="text-center text-gray-500 dark:text-gray-400 py-8">
             <MessageCircle size={32} className="mx-auto mb-2 opacity-50" />
             <p>还没有消息</p>
             <p className="text-sm">开始聊天吧！</p>
@@ -78,7 +78,7 @@ const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
             <div key={date}>
               {/* 日期分隔符 */}
               <div className="flex items-center justify-center my-4">
-                <div className="bg-gray-200 text-gray-600 text-xs px-3 py-1 rounded-full">
+                <div className="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs px-3 py-1 rounded-full">
                   {date}
                 </div>
               </div>
@@ -86,7 +86,7 @@ const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
               {/* 该日期的消息 */}
               {dateMessages.map((message, index) => {
                 const isOwn = message.username === currentUsername;
-                const showAvatar = index === 0 || 
+                const showAvatar = index === 0 ||
                   dateMessages[index - 1].username !== message.username;
 
                 return (
@@ -99,16 +99,16 @@ const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
                         <div className="w-6 h-6 bg-linuxdo-500 text-white rounded-full flex items-center justify-center text-xs font-medium">
                           {message.username.charAt(0).toUpperCase()}
                         </div>
-                        <span className="text-xs font-medium text-gray-600">
+                        <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
                           {message.username}
                         </span>
                       </div>
                     )}
-                    
+
                     <div className={`message-bubble ${isOwn ? 'own' : 'other'}`}>
                       {message.message}
                     </div>
-                    
+
                     <div className="message-meta">
                       {formatTime(message.createdAt || message.timestamp)}
                     </div>
@@ -122,7 +122,7 @@ const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
       </div>
 
       {/* 输入框 */}
-      <div className="p-4 border-t bg-gray-50">
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
         <form onSubmit={handleSubmit} className="flex space-x-2">
           <input
             ref={inputRef}
@@ -130,7 +130,7 @@ const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             placeholder="输入消息..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-linuxdo-500 focus:border-transparent text-sm"
+            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-linuxdo-500 focus:border-transparent text-sm"
             maxLength={500}
           />
           <button
@@ -145,9 +145,9 @@ const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
             <Send size={16} />
           </button>
         </form>
-        
+
         {/* 字符计数 */}
-        <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
+        <div className="flex justify-between items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
           <span>按 Enter 发送消息</span>
           <span>{inputMessage.length}/500</span>
         </div>

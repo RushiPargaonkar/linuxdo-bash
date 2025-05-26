@@ -115,22 +115,22 @@ const UserList = ({ users, currentUsername, socket }) => {
     (currentUsername ? mockUsers : []);
 
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
       {/* 用户列表头部 */}
-      <div className="bg-gray-800 text-white px-4 py-3">
+      <div className="bg-gray-800 dark:bg-gray-700 text-white px-4 py-3">
         <div className="flex items-center space-x-2">
           <Users size={20} />
           <span className="font-semibold">在线用户</span>
-          <span className="bg-gray-600 text-xs px-2 py-1 rounded-full">
+          <span className="bg-gray-600 dark:bg-gray-600 text-xs px-2 py-1 rounded-full">
             {displayUsers.length}
           </span>
         </div>
       </div>
 
       {/* 用户列表 */}
-      <div className="divide-y divide-gray-200">
+      <div className="divide-y divide-gray-200 dark:divide-gray-700">
         {displayUsers.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
+          <div className="p-6 text-center text-gray-500 dark:text-gray-400">
             <Users size={32} className="mx-auto mb-2 opacity-50" />
             <p>暂无在线用户</p>
           </div>
@@ -140,7 +140,7 @@ const UserList = ({ users, currentUsername, socket }) => {
             const isCurrentUser = user.username === currentUsername;
 
             return (
-              <div key={user.username} className="p-4 hover:bg-gray-50 transition-colors">
+              <div key={user.username} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
                     {/* 用户头像 */}
@@ -152,30 +152,30 @@ const UserList = ({ users, currentUsername, socket }) => {
 
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-gray-900 dark:text-gray-100">
                           {user.username}
                         </span>
                         {isCurrentUser && (
-                          <span className="text-xs bg-linuxdo-100 text-linuxdo-800 px-2 py-1 rounded-full">
+                          <span className="text-xs bg-linuxdo-100 dark:bg-linuxdo-900 text-linuxdo-800 dark:text-linuxdo-200 px-2 py-1 rounded-full">
                             你
                           </span>
                         )}
                       </div>
 
                       {/* 容器信息 */}
-                      <div className="flex items-center space-x-1 mt-1 text-xs text-gray-500">
+                      <div className="flex items-center space-x-1 mt-1 text-xs text-gray-500 dark:text-gray-400">
                         <Container size={12} />
                         <span>{user.containerId?.substring(0, 12) || 'container-xxx'}</span>
                       </div>
 
                       {/* 运行时间 */}
-                      <div className="flex items-center space-x-1 mt-1 text-xs text-gray-500">
+                      <div className="flex items-center space-x-1 mt-1 text-xs text-gray-500 dark:text-gray-400">
                         <Clock size={12} />
                         <span>运行 {formatUptime(user.uptime)}</span>
                       </div>
 
                       {/* 剩余时间 */}
-                      <div className="text-xs text-orange-600 mt-1">
+                      <div className="text-xs text-orange-600 dark:text-orange-400 mt-1">
                         {formatTimeRemaining(user.createdAt)}
                       </div>
                     </div>
@@ -185,7 +185,7 @@ const UserList = ({ users, currentUsername, socket }) => {
                   <div className="flex flex-col items-end space-y-2">
                     <div className="flex items-center space-x-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-xs text-green-600">运行中</span>
+                      <span className="text-xs text-green-600 dark:text-green-400">运行中</span>
                     </div>
 
                     {isCurrentUser ? (
@@ -194,7 +194,7 @@ const UserList = ({ users, currentUsername, socket }) => {
                         <button
                           onClick={handleResetContainer}
                           disabled={isResetting}
-                          className="flex items-center space-x-1 text-xs text-red-600 hover:text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex items-center space-x-1 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <RotateCcw size={12} className={isResetting ? 'animate-spin' : ''} />
                           <span>{isResetting ? '重置中...' : '重置容器'}</span>
@@ -203,14 +203,14 @@ const UserList = ({ users, currentUsername, socket }) => {
                         <button
                           onClick={handleExtendContainer}
                           disabled={isExtending}
-                          className="flex items-center space-x-1 text-xs text-blue-600 hover:text-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex items-center space-x-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Plus size={12} />
                           <span>{isExtending ? '延长中...' : '延长时间'}</span>
                         </button>
                       </div>
                     ) : (
-                      <button className="flex items-center space-x-1 text-xs text-gray-500 hover:text-gray-700 transition-colors">
+                      <button className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
                         <Eye size={12} />
                         <span>观看</span>
                       </button>
@@ -237,7 +237,7 @@ const UserList = ({ users, currentUsername, socket }) => {
       </div>
 
       {/* 统计信息 */}
-      <div className="bg-gray-50 px-4 py-3 text-xs text-gray-600">
+      <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 text-xs text-gray-600 dark:text-gray-300">
         <div className="flex justify-between items-center">
           <span>总计 {displayUsers.length} 个活跃容器</span>
           <span>自动清理: 2小时</span>
