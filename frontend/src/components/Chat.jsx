@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, MessageCircle } from 'lucide-react';
+import { getUserAvatarColor, getUserInitial } from '../utils/avatarColors';
 
 const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
   const [inputMessage, setInputMessage] = useState('');
@@ -98,16 +99,16 @@ const Chat = ({ socket, messages, currentUsername, onSendMessage }) => {
                     {showAvatar && (
                       <div className={`flex items-center space-x-2 mb-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
                         {!isOwn && (
-                          <div className="w-6 h-6 bg-linuxdo-500 text-white rounded-full flex items-center justify-center text-xs font-medium">
-                            {message.username.charAt(0).toUpperCase()}
+                          <div className={`w-6 h-6 ${getUserAvatarColor(message.username)} text-white rounded-full flex items-center justify-center text-xs font-medium`}>
+                            {getUserInitial(message.username)}
                           </div>
                         )}
                         <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
                           {message.username}
                         </span>
                         {isOwn && (
-                          <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-medium">
-                            {message.username.charAt(0).toUpperCase()}
+                          <div className={`w-6 h-6 ${getUserAvatarColor(message.username)} text-white rounded-full flex items-center justify-center text-xs font-medium`}>
+                            {getUserInitial(message.username)}
                           </div>
                         )}
                       </div>

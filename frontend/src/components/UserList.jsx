@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Clock, Container, Eye, RotateCcw, Plus } from 'lucide-react';
+import { getUserAvatarColor, getUserInitial } from '../utils/avatarColors';
 
 const UserList = ({ users, currentUsername, socket }) => {
   const [userTerminalOutputs, setUserTerminalOutputs] = useState({});
@@ -144,10 +145,8 @@ const UserList = ({ users, currentUsername, socket }) => {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
                     {/* 用户头像 */}
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${
-                      isCurrentUser ? 'bg-linuxdo-500' : 'bg-gray-500'
-                    }`}>
-                      {user.username && user.username.charAt(0).toUpperCase()}
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-medium ${getUserAvatarColor(user.username)}`}>
+                      {getUserInitial(user.username)}
                     </div>
 
                     <div className="flex-1">
