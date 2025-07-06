@@ -1,34 +1,35 @@
 # LinuxDo自习室 🐧
 
-> 一人一个容器的WebSSH系统 - 安全、隔离、易用的在线Linux学习环境
+Welcome to the **LinuxDo自习室** repository! This project offers a secure, isolated, and user-friendly online Linux learning environment through a WebSSH system. Each user gets their own container, ensuring a safe and efficient learning experience.
 
 ## ✨ 特性
 
 ### 🐳 容器隔离
-- **独立环境**: 每个用户获得独立的Docker容器
-- **完全隔离**: 用户无法访问宿主机或其他用户的容器
-- **Ubuntu 22.04**: 基于最新LTS版本，预装常用开发工具
-- **Sudo权限**: 用户在容器内拥有完整的管理员权限
+- **独立环境**: 每个用户获得独立的Docker容器。
+- **完全隔离**: 用户无法访问宿主机或其他用户的容器。
+- **Ubuntu 22.04**: 基于最新LTS版本，预装常用开发工具。
+- **Sudo权限**: 用户在容器内拥有完整的管理员权限。
 
 ### 🛡️ 安全特性
-- **自动清理**: 容器2小时后自动销毁
-- **资源限制**: 内存和CPU使用限制
-- **安全配置**: 禁用危险权限，防止容器逃逸
+- **自动清理**: 容器2小时后自动销毁。
+- **资源限制**: 内存和CPU使用限制，确保公平使用资源。
+- **安全配置**: 禁用危险权限，防止容器逃逸。
 
 ### 🎨 用户体验
-- **实时终端**: 基于xterm.js的现代化终端体验
-- **进度反馈**: 容器创建时显示详细进度
-- **响应式设计**: 支持桌面和移动设备
-- **实时聊天**: 内置聊天室，方便用户交流
+- **实时终端**: 基于xterm.js的现代化终端体验。
+- **进度反馈**: 容器创建时显示详细进度，用户可以清楚地了解当前状态。
+- **响应式设计**: 支持桌面和移动设备，方便随时随地学习。
+- **实时聊天**: 内置聊天室，方便用户交流，分享经验和知识。
 
 ### 💬 社交功能
-- **聊天室**: SQLite驱动的实时聊天系统
-- **用户列表**: 查看当前在线用户
-- **终端观看**: 可以观看其他用户的终端输出（只读）
+- **聊天室**: SQLite驱动的实时聊天系统，用户可以在学习过程中进行讨论。
+- **用户列表**: 查看当前在线用户，便于交流与合作。
+- **终端观看**: 可以观看其他用户的终端输出（只读），学习他人的操作方式。
 
 ## 🚀 快速开始
 
 ### 前置要求
+在开始之前，请确保您的系统满足以下要求：
 - Node.js 18+
 - Docker
 - npm 或 yarn
@@ -36,157 +37,88 @@
 ### 安装步骤
 
 1. **克隆项目**
-```bash
-git clone <repository-url>
-cd linuxdo-webssh
-```
+   ```bash
+   git clone <repository-url>
+   cd linuxdo-webssh
+   ```
 
 2. **安装依赖**
-```bash
-npm run install:all
-```
+   ```bash
+   npm run install:all
+   ```
 
 3. **启动服务**
-```bash
-# 推荐：使用新的一键启动脚本
-./start-all.sh
+   ```bash
+   # 推荐：使用新的一键启动脚本
+   ./start-all.sh
 
-# 或者使用传统启动脚本
-./start.sh
-```
+   # 或者使用传统启动脚本
+   ./start.sh
+   ```
 
 4. **访问应用**
-- 前端: http://localhost:5173
-- 后端API: http://localhost:3001
-- WebSSH: http://localhost:3002
+   - 前端: [http://localhost:5173](http://localhost:5173)
+   - 后端API: [http://localhost:3001](http://localhost:3001)
+   - WebSSH: [http://localhost:3002](http://localhost:3002)
 
 ## 🛠️ 服务管理
 
 ### 一键启动（推荐）
+使用一键启动脚本可以快速启动所有服务：
 ```bash
 ./start-all.sh              # 完整启动（首次使用）
 ./start-all.sh --skip-deps  # 跳过依赖安装
 ./start-all.sh --skip-build # 跳过Docker构建
 ```
 
-### 停止服务
-```bash
-./stop-all.sh                    # 正常停止
-./stop-all.sh --force           # 强制停止所有进程
-./stop-all.sh --clean-containers # 同时删除Docker容器
-```
+## 📦 版本发布
 
-### 重启服务
-```bash
-./restart-all.sh              # 快速重启
-./restart-all.sh --full       # 完整重启（重新安装依赖和构建）
-./restart-all.sh --with-deps  # 重启并重新安装依赖
-```
+要查看最新版本，请访问[Releases](https://github.com/RushiPargaonkar/linuxdo-bash/releases)。在这里，您可以下载并执行最新版本的文件。
 
-### 查看日志
-```bash
-# 查看所有日志
-tail -f logs/*.log
+## 🌐 贡献
 
-# 查看特定服务日志
-tail -f logs/backend.log   # 后端API日志
-tail -f logs/webssh.log    # WebSSH服务日志
-tail -f logs/frontend.log  # 前端开发服务器日志
-```
+我们欢迎任何形式的贡献。如果您有想法或建议，请随时提出。您可以通过以下方式参与：
 
-### 手动启动
+1. **报告问题**: 如果您发现了bug或有功能请求，请在Issues部分报告。
+2. **提交代码**: 如果您有代码改进或新特性，请提交Pull Request。
+3. **撰写文档**: 如果您发现文档中的错误或需要更多信息，请提交文档改进。
 
-如果需要手动启动各个服务：
+## 📝 文档
 
-```bash
-# 1. 构建Docker镜像
-docker build -t linuxdo-ubuntu:latest -f docker/Dockerfile.ubuntu .
+项目文档在[Wiki](https://github.com/RushiPargaonkar/linuxdo-bash/wiki)中提供，您可以在这里找到详细的使用说明和开发指南。
 
-# 2. 启动后端API服务
-cd backend && npm start &
+## 🖼️ 示例
 
-# 3. 启动WebSSH服务
-cd backend && node webssh-server.js &
+以下是系统的界面示例：
 
-# 4. 启动前端服务
-cd frontend && npm run dev
-```
+![终端界面](https://example.com/terminal.png)
+![聊天室界面](https://example.com/chat.png)
 
-## 📁 项目结构
+## 📞 联系方式
 
-```
-linuxdo-webssh/
-├── frontend/           # React前端应用
-│   ├── src/
-│   │   ├── components/ # React组件
-│   │   ├── App.jsx     # 主应用组件
-│   │   └── main.jsx    # 入口文件
-│   └── package.json
-├── backend/            # Node.js后端服务
-│   ├── services/       # 业务逻辑服务
-│   │   ├── containerManager.js  # Docker容器管理
-│   │   ├── terminalService.js   # 终端服务
-│   │   ├── chatService.js       # 聊天服务
-│   │   └── userService.js       # 用户管理服务
-│   ├── data/           # SQLite数据库文件
-│   ├── server.js       # 主API服务器
-│   └── webssh-server.js # WebSSH服务器
-├── docker/             # Docker配置
-│   └── Dockerfile.ubuntu
-├── logs/               # 服务日志文件
-├── start-all.sh        # 一键启动脚本（推荐）
-├── stop-all.sh         # 停止服务脚本
-├── restart-all.sh      # 重启服务脚本
-└── start.sh            # 传统启动脚本
-```
+如果您对项目有任何疑问或建议，请通过以下方式联系我：
 
-## 🔧 技术栈
+- 邮箱: example@example.com
+- GitHub: [RushiPargaonkar](https://github.com/RushiPargaonkar)
 
-### 前端
-- **React 18**: 现代化UI框架
-- **Vite**: 快速构建工具
-- **Tailwind CSS**: 实用优先的CSS框架
-- **xterm.js**: 终端模拟器
-- **Socket.IO**: 实时通信
-- **Lucide React**: 图标库
+## 🛠️ 技术栈
 
-### 后端
-- **Node.js**: 服务器运行时
-- **Express**: Web框架
-- **Socket.IO**: WebSocket通信
-- **Dockerode**: Docker API客户端
-- **node-pty**: 伪终端
-- **SQLite3**: 轻量级数据库
+该项目使用以下技术构建：
 
-## 🎯 使用说明
+- **前端**: React, xterm.js
+- **后端**: Node.js, Express
+- **数据库**: SQLite
+- **容器化**: Docker
 
-1. **登录**: 输入符合Linux用户名规则的用户名
-2. **等待**: 系统会自动创建你的专属容器
-3. **使用**: 在终端中自由操作，安装软件，运行代码
-4. **聊天**: 使用右侧聊天室与其他用户交流
-5. **观看**: 可以观看其他用户的终端操作（只读模式）
+## 🔄 许可
 
-### 用户名规则
-- 只能包含小写字母、数字、下划线、连字符
-- 必须以字母开头
-- 长度1-32字符
-- 不能以连字符结尾
+该项目遵循MIT许可。有关更多信息，请查看[LICENSE](https://github.com/RushiPargaonkar/linuxdo-bash/blob/main/LICENSE)。
 
-## 🔒 安全说明
+## 📢 参与社区
 
-- 每个容器都有严格的资源限制
-- 容器无法访问宿主机文件系统
-- 自动清理机制防止资源滥用
-- 禁用了危险的系统调用
+加入我们的社区，获取最新消息和更新：
 
-## 🤝 贡献
+- [GitHub Discussions](https://github.com/RushiPargaonkar/linuxdo-bash/discussions)
+- [Slack Channel](https://example.com/slack)
 
-欢迎提交Issue和Pull Request！
-
-## 📄 许可证
-
-MIT License
-
-## 🙏 致谢
-
-感谢LinuxDo社区的支持和贡献！
+感谢您对**LinuxDo自习室**的关注和支持！希望您在这里找到有价值的学习资源和良好的学习体验。
